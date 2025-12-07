@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✨ 我的百宝箱 v6.3 (下载修复版) ✨</title>
+    <style>
+        /* --- 引入定制字体 --- */
+        @font-face {
+            font-family: 'MyCustomFont';
+            src: url('https://files.catbox.moe/cweam3.ttf') format('truetype');
+            font-display: swap;
+        }
+
+        :root {
+            --primary-color: #ffb7c5;
+            --secondary-color: #ffe6eb;
+            --accent-color: #ff8fa3;
+            --text-color: #6d5c5c;
+            --radius: 20px;
+            --shadow: 0 8px 24px rgba(255, 183, 197, 0.4);
+        }
+
+        body {
+            font-family: 'MyCustomFont', 'Microsoft YaHei', sans-serif;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            background-image: radial-gradient(#fff 2px, transparent 2px);
+            background-size: 30px 30px;
+            overflow-x: hidden;
+            padding-bottom: 100px;
+        }
+
+        h1 {
+            text-align: center; color: var(--accent-color); font-weight: normal;
+            margin: 10px 0 30px 0; text-shadow: 2px 2px 0px #fff; font-size: 32px;
+        }
+
+        /* --- 🐶 悬浮窗 --- */
+        .float-widget { position: fixed; bottom: 30px; right: 30px; z-index: 9999; touch-action: none; }
+        
+        .float-btn {
+            width: 48px; height: 48px; border-radius: 50%;
+            background: #fff; border: 3px solid var(--primary-color);
+            box-shadow: 0 5px 15px rgba(255, 117, 143, 0.3);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 24px; cursor: move; user-select: none;
+            transition: transform 0.1s; position: relative;
+        }
+        .float-btn:active { transform: scale(0.9); }
+        .float-btn::after { content: '🐶'; }
+        
+        .float-menu {
+            position: absolute; bottom: 60px; right: 0;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
+            border-radius: 20px; width: 260px; padding: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15); border: 2px solid #fff;
+            transform-origin: bottom right; transform: scale(0); opacity: 0;
+            transition: all 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            pointer-events: none; max-height: 60vh; display: flex; flex-direction: column;
+        }
+        .float-menu.active { transform: scale(1); opacity: 1; pointer-events: auto; }
+
+        .music-panel { background: var(--secondary-color); border-radius: 15px; padding: 12px; margin-bottom: 15px; text-align: center; }
+        .music-controls { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .play-btn { background: var(--accent-color); color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .nav-panel { flex-grow: 1; overflow-y: auto; }
+        .nav-title { font-weight: bold; color: var(--accent-color); margin-bottom: 8px; border-bottom: 1px dashed #ddd; }
+        
+        /* --- 卡片与布局 --- */
+        .search-container { max-width: 600px; margin: 0 auto 30px auto; position: relative; }
+        .search-input { width: 100%; padding: 15px 50px 15px 25px; border: 2px solid #fff; border-radius: 50px; background: rgba(255, 255, 255, 0.9); font-size: 16px; outline: none; font-family: inherit; }
+        .search-input:focus { border-color: var(--primary-color); }
+        .search-icon { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); color: var(--primary-color); }
+
+        .controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; flex-wrap: wrap; }
+        button { background: #fff; border: 2px solid var(--primary-color); color: var(--accent-color); padding: 8px 18px; border-radius: 50px; cursor: pointer; font-family: inherit; font-size: 14px; transition: all 0.2s; display: flex; align-items: center; gap: 5px; }
+        button:hover { background: var(--primary-color); color: white; transform: translateY(-2px); }
+        button.primary-btn { background: var(--accent-color); color: white; border: none; }
+
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
+        .card { background: #fff; border-radius: var(--radius); overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: transform 0.3s; border: 3px solid #fff; display: flex; flex-direction: column; cursor: pointer; position: relative; }
+        .card:hover { transform: translateY(-5px); border-color: var(--primary-color); }
+        .card-img-wrapper { height: 200px; background-color: #fcecef; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+        .card img { width: 100%; height: 100%; object-fit: cover; }
+        
+        /* 角标 */
+        .content-indicators { position: absolute; top: 8px; left: 8px; display: flex; gap: 4px; flex-wrap: wrap; }
+        .indicator { background: rgba(255,255,255,0.95); padding: 2px 6px; border-radius: 6px; font-size: 12px; color: var(--text-color); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        
+        .card-content { padding: 10px; flex-grow: 1; display: flex; flex-direction: column; }
+        .card-title { font-size: 18px; margin: 0 0 5px 0; color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .tags-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: auto; }
+        .tag-pill { background: var(--secondary-color); color: var(--accent-color); font-size: 12px; padding: 2px 6px; border-radius: 8px; }
+
+        /* --- 弹窗与表单 --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 240, 245, 0.85); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 2000; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: white; padding: 25px; border-radius: 25px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: 0 15px 40px rgba(255, 130, 150, 0.2); position: relative; }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 16px; color: var(--accent-color); }
+        input[type="text"], select { width: 100%; padding: 10px; border: 2px solid var(--secondary-color); border-radius: 12px; outline: none; box-sizing: border-box; background: #fff; font-family: inherit; font-size: 15px; }
+        
+        .tag-input-area { border: 2px solid var(--secondary-color); border-radius: 12px; padding: 8px; display: flex; flex-wrap: wrap; gap: 5px; min-height: 40px; }
+        .tag-input-area input { border: none; outline: none; flex-grow: 1; padding: 5px; font-family: inherit; }
+        .tag-chip { background: var(--primary-color); color: white; padding: 3px 8px; border-radius: 10px; font-size: 14px; display: flex; gap: 5px; align-items: center; }
+
+        /* --- 资源列表样式 --- */
+        .resource-list { border: 1px solid #eee; border-radius: 12px; padding: 10px; max-height: 200px; overflow-y: auto; background: #fafafa; }
+        .resource-item { display: flex; align-items: center; gap: 10px; background: white; padding: 8px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #f0f0f0; }
+        .resource-preview { width: 40px; height: 40px; border-radius: 5px; object-fit: cover; background: #eee; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 20px;}
+        .resource-info { flex-grow: 1; min-width: 0; }
+        .resource-name { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .resource-type-select { font-size: 12px; padding: 2px; border: 1px solid #ddd; border-radius: 4px; margin-top: 2px; font-family: inherit; }
+        .btn-remove { background: #ffdede; color: #ff6b6b; border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; font-weight: bold; }
+
+        .add-btn-row { display: flex; gap: 10px; margin-top: 5px; }
+        .small-btn { font-size: 14px; padding: 5px 12px; }
+
+        /* --- 详情页样式 --- */
+        .gallery-container { position: relative; width: 100%; height: 320px; background: #fafafa; border-radius: 15px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; border: 1px solid #eee; flex-direction: column;}
+        .gallery-img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .gallery-type-label { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; z-index: 10; }
+        
+        .gallery-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.8); border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); user-select: none; z-index: 10; }
+        .nav-prev { left: 10px; } .nav-next { right: 10px; }
+        .cover-btn { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9); border: 2px solid var(--accent-color); color: var(--accent-color); font-size: 12px; padding: 4px 10px; cursor: pointer; border-radius: 20px; z-index: 10; font-family: inherit; }
+        .cover-btn.is-cover { background: var(--accent-color); color: white; }
+        .download-img-btn { position: absolute; bottom: 10px; right: 10px; background: rgba(255,255,255,0.9); border: 2px solid var(--primary-color); color: var(--primary-color); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); z-index: 10; transition: all 0.2s;}
+        
+        /* 详情页列表 */
+        .detail-list { margin-top: 10px; }
+        .detail-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed #eee; font-size: 14px; }
+        .detail-item-type { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; color: #888; margin-right: 5px; font-size: 12px; }
+        
+        /* 下载小按钮 */
+        .action-link { 
+            color: var(--accent-color); text-decoration: none; cursor: pointer; font-weight: bold; font-size: 12px;
+            background: #fff0f3; padding: 4px 8px; border-radius: 4px; transition: background 0.2s;
+        }
+        .action-link:hover { background: var(--primary-color); color: white; }
+
+        .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        .close-modal { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 28px; cursor: pointer; color: #ccc; }
+        .empty-state { grid-column: 1 / -1; text-align: center; color: #cea0a9; padding: 50px; font-size: 18px; }
+        .edit-btn { background: #fff8e1; border-color: #ffc107; color: #ffb300; }
+        
+        input[type="file"] { display: none; }
+    </style>
+</head>
+<body>
+
+    <h1>🌸 我的百宝箱 v6.3 🌸</h1>
+
+    <div class="float-widget" id="floatWidget">
+        <div class="float-menu" id="floatMenu">
+            <div class="music-panel">
+                <div style="font-size:12px; color:#aaa; margin-bottom:5px;">🎧 背景音乐</div>
+                <div class="music-controls">
+                    <button class="play-btn" onclick="toggleMusic()" id="playBtn">▶</button>
+                    <input type="range" min="0" max="1" step="0.1" value="0.5" onchange="changeVolume(this)" style="width:60px; accent-color:var(--accent-color)">
+                </div>
+                <input type="text" style="width:100%;font-size:10px;padding:4px;border:1px solid #ddd;border-radius:5px;" id="musicLink" placeholder="输入mp3链接..." onchange="updateMusicSrc(this.value)">
+                <audio id="bgMusic" loop></audio>
+            </div>
+            <div class="nav-panel" id="navPanel">
+                <div class="nav-title">🏷️ 快速跳转</div>
+            </div>
+        </div>
+        <div class="float-btn" id="floatBtn"></div>
+    </div>
+
+    <div class="search-container">
+        <input type="text" class="search-input" id="searchInput" placeholder="搜索名称或标签..." oninput="handleSearch()">
+        <span class="search-icon">🔍</span>
+    </div>
+
+    <div class="controls">
+        <button onclick="openAddModal()" class="primary-btn"><span>➕</span> 添加素材</button>
+        <button onclick="exportAllData()"><span>💾</span> 备份全部</button>
+        <button onclick="document.getElementById('importAllInput').click()"><span>📂</span> 导入备份</button>
+        <input type="file" id="importAllInput" accept=".json" onchange="importAllData(this)">
+    </div>
+
+    <div class="grid-container" id="gridContainer"></div>
+
+    <div class="modal-overlay" id="addModal">
+        <div class="modal">
+            <button class="close-modal" onclick="closeAddModal()">×</button>
+            <h2 id="modalTitle">✨ 添加新收藏</h2>
+            
+            <div class="form-group">
+                <label>💖 名字</label>
+                <input type="text" id="itemName" placeholder="给这个盒子起个名字...">
+            </div>
+
+            <div class="form-group">
+                <label>🏷️ 标签 (回车添加)</label>
+                <div class="tag-input-area" id="tagInputArea" onclick="document.getElementById('tagInput').focus()">
+                    <input type="text" id="tagInput" onkeydown="handleTagInput(event)">
+                </div>
+                <div id="suggestedTags" style="margin-top:5px; display:flex; gap:5px; flex-wrap:wrap;"></div>
+            </div>
+
+            <div class="form-group">
+                <label>📦 包含的文件与链接</label>
+                <div class="resource-list" id="resourceList">
+                    <div style="text-align:center; color:#ccc; font-size:12px; padding:20px;">暂无内容，请点击下方按钮添加</div>
+                </div>
+
+                <div class="add-btn-row">
+                    <label class="upload-area small-btn">
+                        🖼️ 加图片
+                        <input type="file" accept="image/*" multiple onchange="handleImageSelect(this)">
+                    </label>
+                    <label class="upload-area small-btn">
+                        📄 加JSON
+                        <input type="file" accept=".json,application/json" multiple onchange="handleJsonSelect(this)">
+                    </label>
+                    <button class="small-btn" onclick="openLinkInput()">🔗 加链接</button>
+                </div>
+                
+                <div id="linkInputArea" style="display:none; margin-top:10px; background:#f9f9f9; padding:10px; border-radius:10px;">
+                    <input type="text" id="newLinkName" placeholder="链接名称 (如: 作者主页)" style="margin-bottom:5px;">
+                    <input type="text" id="newLinkUrl" placeholder="网址 (http://...)" style="margin-bottom:5px;">
+                    <div style="text-align:right;">
+                        <button class="small-btn" onclick="confirmAddLink()">确定</button>
+                        <button class="small-btn" style="background:#eee; color:#666; border:none" onclick="document.getElementById('linkInputArea').style.display='none'">取消</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-buttons">
+                <button onclick="closeAddModal()">取消</button>
+                <button class="primary-btn" onclick="saveItem()">💾 保存</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal">
+            <button class="close-modal" onclick="closeDetailModal()">×</button>
+            <h2 id="detailName" style="text-align:center; margin-bottom:5px;"></h2>
+            <div id="detailTags" style="display:flex; justify-content:center; gap:5px; margin-bottom:15px;"></div>
+
+            <div id="galleryArea">
+                <div class="gallery-container">
+                    <div class="gallery-type-label" id="galleryTypeLabel">类型</div>
+                    <img id="detailImg" class="gallery-img" src="">
+                    <div class="gallery-nav nav-prev" onclick="changeGalleryImage(-1)">❮</div>
+                    <div class="gallery-nav nav-next" onclick="changeGalleryImage(1)">❯</div>
+                    
+                    <button id="setCoverBtn" class="cover-btn" onclick="setAsCover()">设为封面</button>
+                    <button class="download-img-btn" onclick="downloadCurrentGalleryImg()" title="下载此图">⬇️</button>
+                    <div style="position:absolute; bottom:10px; left:10px; background:rgba(0,0,0,0.5); color:white; padding:2px 8px; border-radius:10px; font-size:12px; pointer-events:none;">
+                        <span id="imgIndex">1</span> / <span id="imgTotal">1</span>
+                    </div>
+                </div>
+            </div>
+            <div id="noImgMsg" style="text-align:center; color:#ccc; padding:20px; display:none;">(此盒子没有图片)</div>
+
+            <div class="form-group">
+                <label>📂 盒子内容</label>
+                <div id="detailListContainer" class="detail-list"></div>
+            </div>
+
+            <div class="modal-buttons" style="justify-content: center; flex-wrap:wrap;">
+                <button class="edit-btn" onclick="openEditMode()">✏️ 编辑盒子内容</button>
+                <button onclick="deleteCurrentItem()" style="border-color: #ffcccc; color: #ff6b6b;">🗑️ 删除盒子</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let items = [];
+        let draftResources = []; 
+        let currentTags = [];
+        let isEditing = false;
+        let editingIndex = -1;
+        let viewingIndex = -1;
+        let galleryIndex = 0;
+
+        const TYPES = ['默认', '人物卡', '世界书', 'QR码', '预设', '预设正则', '插件'];
+        const PLACEHOLDER_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23ffe6eb'/%3E%3Ctext x='50' y='50' fill='%23ffb7c5' text-anchor='middle' dy='.3em'%3E无图%3C/text%3E%3C/svg%3E";
+        const DEFAULT_MUSIC = "https://files.catbox.moe/btptsb.mp3";
+
+        window.onload = function() {
+            const data = localStorage.getItem('my_magic_collection_v3');
+            if (data) {
+                let raw = JSON.parse(data);
+                if (raw.length > 0 && raw[0].images) {
+                    items = raw.map(old => {
+                        const newRes = [];
+                        (old.images || []).forEach(img => { newRes.push({ type: 'image', subType: old.type || '默认', name: 'image.png', content: img }); });
+                        (old.jsons || []).forEach(j => { newRes.push({ type: 'json', subType: '默认', name: j.name, content: j.content }); });
+                        return { name: old.name, tags: old.tags, coverIndex: old.coverIndex || 0, date: old.date, resources: newRes };
+                    });
+                    saveToStorage();
+                } else { items = raw; }
+            }
+            renderGrid(items);
+            initMusic();
+            renderNavPanel();
+            initDraggable();
+        };
+
+        // --- 核心渲染 ---
+        function renderGrid(dataList) {
+            const container = document.getElementById('gridContainer');
+            container.innerHTML = '';
+            if (dataList.length === 0) { container.innerHTML = '<div class="empty-state">空空的...快去添加吧！</div>'; return; }
+            
+            dataList.forEach((item) => {
+                const realIndex = items.indexOf(item);
+                const card = document.createElement('div'); card.className = 'card';
+                card.onclick = () => openDetailModal(realIndex);
+
+                const images = item.resources.filter(r => r.type === 'image');
+                let coverSrc = PLACEHOLDER_IMG;
+                if (images.length > 0) {
+                    let idx = item.coverIndex || 0;
+                    if (idx >= images.length) idx = 0;
+                    coverSrc = images[idx].content;
+                }
+
+                const imgWrapper = document.createElement('div'); imgWrapper.className = 'card-img-wrapper';
+                const img = document.createElement('img'); img.src = coverSrc;
+                imgWrapper.appendChild(img);
+
+                const indicators = document.createElement('div'); indicators.className = 'content-indicators';
+                const typeCounts = {};
+                item.resources.forEach(r => {
+                    let t = r.subType; if(r.type === 'link') t = '链接';
+                    typeCounts[t] = (typeCounts[t] || 0) + 1;
+                });
+                Object.keys(typeCounts).forEach(k => {
+                    if(k !== '默认') {
+                        const ind = document.createElement('div'); ind.className = 'indicator';
+                        ind.textContent = `${k} ${typeCounts[k]}`; indicators.appendChild(ind);
+                    }
+                });
+                imgWrapper.appendChild(indicators);
+
+                const content = document.createElement('div'); content.className = 'card-content';
+                const title = document.createElement('h3'); title.className = 'card-title'; title.textContent = item.name;
+                content.appendChild(title);
+                const tagsDiv = document.createElement('div'); tagsDiv.className = 'tags-container';
+                (item.tags||[]).forEach(t => {
+                    const span = document.createElement('span'); span.className = 'tag-pill'; span.textContent = t;
+                    tagsDiv.appendChild(span);
+                });
+                content.appendChild(tagsDiv);
+                card.appendChild(imgWrapper); card.appendChild(content); container.appendChild(card);
+            });
+        }
+
+        // --- 逻辑函数 ---
+        function resetAddModal() {
+            isEditing = false; editingIndex = -1;
+            document.getElementById('modalTitle').textContent = '✨ 添加新收藏';
+            document.getElementById('itemName').value = '';
+            document.getElementById('tagInput').value = '';
+            document.getElementById('linkInputArea').style.display = 'none';
+            draftResources = []; currentTags = [];
+            renderTagsInput(); renderResourceList(); renderSuggestTags();
+        }
+
+        function openAddModal() { resetAddModal(); document.getElementById('addModal').classList.add('active'); }
+
+        function openEditMode() {
+            if (viewingIndex === -1) return;
+            isEditing = true; editingIndex = viewingIndex;
+            const item = items[editingIndex];
+            document.getElementById('modalTitle').textContent = '✏️ 编辑盒子内容';
+            document.getElementById('itemName').value = item.name;
+            currentTags = [...(item.tags || [])];
+            draftResources = JSON.parse(JSON.stringify(item.resources));
+            renderTagsInput(); renderResourceList(); renderSuggestTags();
+            document.getElementById('detailModal').classList.remove('active'); 
+            document.getElementById('addModal').classList.add('active');       
+        }
+
+        function renderResourceList() {
+            const list = document.getElementById('resourceList'); list.innerHTML = '';
+            if(draftResources.length === 0) { list.innerHTML = '<div style="text-align:center; color:#ccc; font-size:12px; padding:20px;">暂无内容</div>'; return; }
+            draftResources.forEach((res, idx) => {
+                const item = document.createElement('div'); item.className = 'resource-item';
+                let previewHtml = '';
+                if (res.type === 'image') previewHtml = `<img src="${res.content}" style="width:100%;height:100%;object-fit:cover">`;
+                else if (res.type === 'json') previewHtml = '📄';
+                else if (res.type === 'link') previewHtml = '🔗';
+                
+                let selectHtml = '';
+                if (res.type !== 'link') {
+                    selectHtml = `<select class="resource-type-select" onchange="updateResourceType(${idx}, this.value)">`;
+                    TYPES.forEach(t => { selectHtml += `<option value="${t}" ${res.subType === t ? 'selected' : ''}>${t}</option>`; });
+                    selectHtml += `</select>`;
+                } else { selectHtml = `<span style="font-size:11px;color:#aaa">链接</span>`; }
+
+                item.innerHTML = `<div class="resource-preview">${previewHtml}</div><div class="resource-info"><div class="resource-name" title="${res.name}">${res.name}</div>${selectHtml}</div><button class="btn-remove" onclick="removeDraftResource(${idx})">×</button>`;
+                list.appendChild(item);
+            });
+        }
+        function updateResourceType(idx, val) { draftResources[idx].subType = val; }
+        function removeDraftResource(idx) { draftResources.splice(idx, 1); renderResourceList(); }
+        async function handleImageSelect(input) {
+            const files = Array.from(input.files);
+            for(let f of files) { const base64 = await readFile(f); draftResources.push({ type: 'image', subType: '默认', name: f.name, content: base64 }); }
+            renderResourceList(); input.value = '';
+        }
+        async function handleJsonSelect(input) {
+            const files = Array.from(input.files);
+            for(let f of files) { const text = await readFileText(f); draftResources.push({ type: 'json', subType: '默认', name: f.name, content: text }); }
+            renderResourceList(); input.value = '';
+        }
+        function openLinkInput() { document.getElementById('linkInputArea').style.display = 'block'; }
+        function confirmAddLink() {
+            const name = document.getElementById('newLinkName').value.trim(); const url = document.getElementById('newLinkUrl').value.trim();
+            if(name && url) {
+                draftResources.push({ type: 'link', subType: 'link', name: name, content: url });
+                renderResourceList();
+                document.getElementById('newLinkName').value = ''; document.getElementById('newLinkUrl').value = ''; document.getElementById('linkInputArea').style.display = 'none';
+            } else { alert('请输入名称和网址'); }
+        }
+        function saveItem() {
+            const name = document.getElementById('itemName').value.trim();
+            if (!name) { alert('名字不能为空'); return; }
+            if (draftResources.length === 0) { alert('盒子不能为空哦'); return; }
+            const itemData = { name: name, tags: [...currentTags], resources: draftResources, coverIndex: 0, date: new Date().toISOString() };
+            if (isEditing) { itemData.coverIndex = items[editingIndex].coverIndex; items[editingIndex] = itemData; } else { items.unshift(itemData); }
+            saveToStorage(); handleSearch(); closeAddModal();
+        }
+
+        // --- 详情 ---
+        function openDetailModal(index) {
+            viewingIndex = index; const item = items[index];
+            document.getElementById('detailName').textContent = item.name;
+            const tagsBox = document.getElementById('detailTags'); tagsBox.innerHTML = '';
+            (item.tags||[]).forEach(t => { const s = document.createElement('span'); s.className='tag-pill'; s.textContent=t; tagsBox.appendChild(s); });
+
+            const images = item.resources.filter(r => r.type === 'image');
+            if(images.length === 0) { document.getElementById('galleryArea').style.display = 'none'; document.getElementById('noImgMsg').style.display = 'block'; }
+            else {
+                document.getElementById('galleryArea').style.display = 'block'; document.getElementById('noImgMsg').style.display = 'none';
+                galleryIndex = item.coverIndex || 0;
+                if(galleryIndex >= images.length) galleryIndex = 0;
+                updateGalleryUI(images);
+            }
+
+            const listContainer = document.getElementById('detailListContainer'); listContainer.innerHTML = '';
+            item.resources.forEach((res, i) => {
+                const row = document.createElement('div'); row.className = 'detail-item';
+                let icon = '📄', actionBtn = '', typeLabel = res.subType;
+                
+                if (res.type === 'image') { icon = '🖼️'; actionBtn = `<span class="action-link" onclick="downloadResource(${i})">下载</span>`; } 
+                else if (res.type === 'json') { icon = '📄'; actionBtn = `<span class="action-link" onclick="downloadResource(${i})">下载</span>`; }
+                else if (res.type === 'link') { icon = '🔗'; typeLabel = '链接'; actionBtn = `<a class="action-link" href="${res.content}" target="_blank">打开</a>`; }
+                
+                row.innerHTML = `<div style="display:flex;align-items:center;min-width:0;"><span class="detail-item-type">${typeLabel}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${icon} ${res.name}</span></div><div style="flex-shrink:0;margin-left:10px;">${actionBtn}</div>`;
+                listContainer.appendChild(row);
+            });
+            document.getElementById('detailModal').classList.add('active');
+        }
+
+        function updateGalleryUI(images) {
+            const imgEl = document.getElementById('detailImg'); const typeLabel = document.getElementById('galleryTypeLabel');
+            const curImg = images[galleryIndex]; imgEl.src = curImg.content; typeLabel.textContent = curImg.subType;
+            document.getElementById('imgIndex').textContent = galleryIndex + 1; document.getElementById('imgTotal').textContent = images.length;
+            const coverBtn = document.getElementById('setCoverBtn');
+            if(galleryIndex === (items[viewingIndex].coverIndex || 0)) { coverBtn.textContent = '当前封面'; coverBtn.classList.add('is-cover'); }
+            else { coverBtn.textContent = '设为封面'; coverBtn.classList.remove('is-cover'); }
+        }
+        function changeGalleryImage(d) {
+            const images = items[viewingIndex].resources.filter(r => r.type === 'image'); if(images.length === 0) return;
+            galleryIndex += d; if(galleryIndex >= images.length) galleryIndex = 0; if(galleryIndex < 0) galleryIndex = images.length - 1;
+            updateGalleryUI(images);
+        }
+        function setAsCover() {
+            if(viewingIndex === -1) return; items[viewingIndex].coverIndex = galleryIndex; saveToStorage(); 
+            const images = items[viewingIndex].resources.filter(r => r.type === 'image'); updateGalleryUI(images); handleSearch();
+        }
+        function downloadCurrentGalleryImg() {
+            const images = items[viewingIndex].resources.filter(r => r.type === 'image'); if(images.length === 0) return;
+            const cur = images[galleryIndex]; downloadFile(cur.name, cur.content);
+        }
+        function downloadResource(resIndex) {
+            const res = items[viewingIndex].resources[resIndex]; if(res.type === 'link') return; downloadFile(res.name, res.content);
+        }
+
+        // --- 核心修复：强制追加 a 标签到 body ---
+        function downloadFile(name, content) {
+            const a = document.createElement('a');
+            if (content.startsWith('data:')) {
+                a.href = content;
+            } else {
+                const blob = new Blob([content], {type: 'application/json'});
+                a.href = URL.createObjectURL(blob);
+            }
+            a.download = name;
+            
+            // 关键修复步骤：
+            document.body.appendChild(a); // 1. 把它挂到页面上
+            a.click();                    // 2. 模拟点击
+            document.body.removeChild(a); // 3. 移除它
+            
+            if (!content.startsWith('data:')) URL.revokeObjectURL(a.href);
+        }
+
+        function readFile(file) { return new Promise(resolve => { const r = new FileReader(); r.onload = e => resolve(e.target.result); r.readAsDataURL(file); }); }
+        function readFileText(file) { return new Promise(resolve => { const r = new FileReader(); r.onload = e => resolve(e.target.result); r.readAsText(file); }); }
+        
+        function handleTagInput(e) { if(e.key==='Enter'){ e.preventDefault(); const v=e.target.value.trim(); if(v && !currentTags.includes(v)) { currentTags.push(v); e.target.value=''; renderTagsInput(); } } if(e.key==='Backspace' && !e.target.value) { currentTags.pop(); renderTagsInput(); } }
+        function renderTagsInput() { const area=document.getElementById('tagInputArea'); const inp=document.getElementById('tagInput'); Array.from(area.children).forEach(c=>c!==inp && area.removeChild(c)); currentTags.forEach((t,i)=>{ const d=document.createElement('div'); d.className='tag-chip'; d.innerHTML=`${t} <span onclick="currentTags.splice(${i},1);renderTagsInput()" style="cursor:pointer">×</span>`; area.insertBefore(d,inp); }); }
+        function renderSuggestTags() { const all=new Set(); items.forEach(i=>(i.tags||[]).forEach(t=>all.add(t))); const box=document.getElementById('suggestedTags'); box.innerHTML=''; all.forEach(t=>{ const d=document.createElement('div'); d.className='tag-chip'; d.style.background='#f0f0f0'; d.style.color='#666'; d.style.cursor='pointer'; d.textContent=t; d.onclick=()=>{if(!currentTags.includes(t)){currentTags.push(t);renderTagsInput();}}; box.appendChild(d); }); }
+        function handleSearch(){ const q=document.getElementById('searchInput').value.toLowerCase(); const f=items.filter(i=>i.name.toLowerCase().includes(q)||(i.tags||[]).some(t=>t.toLowerCase().includes(q))); renderGrid(f); }
+        function closeAddModal() { document.getElementById('addModal').classList.remove('active'); }
+        function closeDetailModal() { document.getElementById('detailModal').classList.remove('active'); viewingIndex=-1; }
+        function deleteCurrentItem() { if(confirm('确定删除吗？')) { items.splice(viewingIndex,1); saveToStorage(); handleSearch(); closeDetailModal(); } }
+        function saveToStorage() { try { localStorage.setItem('my_magic_collection_v3', JSON.stringify(items)); renderNavPanel(); } catch (e) { alert('⚠️ 存储空间满了！'); } }
+        function exportAllData() { const blob = new Blob([JSON.stringify(items)], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `备份_${new Date().toISOString().slice(0,10)}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
+        function importAllData(el) { const file = el.files[0]; if(!file) return; const r = new FileReader(); r.onload = e => { try { items = JSON.parse(e.target.result); saveToStorage(); renderGrid(items); renderNavPanel(); alert('导入成功！'); } catch{ alert('文件格式错误'); } }; r.readAsText(file); }
+        
+        function initMusic() { const link = localStorage.getItem('my_bgm_link') || DEFAULT_MUSIC; const audio = document.getElementById('bgMusic'); audio.src = link; audio.volume = 0.5; document.getElementById('musicLink').value = link; }
+        function toggleMusic() { const a=document.getElementById('bgMusic'); const b=document.getElementById('playBtn'); if(a.paused){a.play();b.textContent='⏸';}else{a.pause();b.textContent='▶';} }
+        function changeVolume(s) { document.getElementById('bgMusic').volume=s.value; }
+        function updateMusicSrc(v) { if(v){document.getElementById('bgMusic').src=v; localStorage.setItem('my_bgm_link',v); document.getElementById('playBtn').textContent='▶';} }
+        function renderNavPanel() { const c = document.getElementById('navPanel'); const t = c.querySelector('.nav-title'); c.innerHTML=''; c.appendChild(t); const map={}; const no=[]; items.forEach((it,i)=>{ if(!it.tags||it.tags.length==0)no.push(i); else it.tags.forEach(tag=>{ if(!map[tag])map[tag]=[]; map[tag].push(i); }); }); if(no.length) createNavGroup(c,'📂 未分类',no); Object.keys(map).sort().forEach(k=>createNavGroup(c,`🏷️ ${k}`,map[k])); }
+        function createNavGroup(c,t,idx) { const g=document.createElement('div'); g.style.marginBottom='5px'; const h=document.createElement('div'); h.innerHTML=`${t} ▾`; h.style.cssText='padding:5px;font-size:12px;font-weight:bold;cursor:pointer;color:#555;'; h.onclick=()=>{l.style.display=l.style.display==='none'?'block':'none'}; const l=document.createElement('div'); l.style.cssText='display:none;padding-left:10px;'; idx.forEach(i=>{ const it=document.createElement('div'); it.textContent=items[i].name; it.style.cssText='font-size:11px;padding:3px;cursor:pointer;color:#888;'; it.onclick=()=>{openDetailModal(i);document.getElementById('floatMenu').classList.remove('active')}; l.appendChild(it); }); g.appendChild(h); g.appendChild(l); c.appendChild(g); }
+
+        function initDraggable() {
+            const w=document.getElementById('floatWidget'), b=document.getElementById('floatBtn'), m=document.getElementById('floatMenu');
+            let isDragging=false, startX, startY, initialLeft, initialTop;
+            b.addEventListener('mousedown', s); b.addEventListener('touchstart', s, {passive:false});
+            function s(e) { 
+                if(e.target.closest('.float-menu'))return; isDragging=false; 
+                const c=e.type.includes('mouse')?e:e.touches[0]; startX=c.clientX; startY=c.clientY; 
+                const r=w.getBoundingClientRect(); initialLeft=r.left; initialTop=r.top;
+                w.style.left=initialLeft+'px'; w.style.top=initialTop+'px'; w.style.bottom='auto'; w.style.right='auto';
+                if(e.type.includes('mouse')) { document.addEventListener('mousemove', mv); document.addEventListener('mouseup', ed); } else { document.addEventListener('touchmove', mv, {passive:false}); document.addEventListener('touchend', ed); }
+            }
+            function mv(e) { 
+                const c=e.type.includes('mouse')?e:e.touches[0]; const dx=c.clientX-startX, dy=c.clientY-startY; 
+                if(Math.abs(dx)>5||Math.abs(dy)>5){ isDragging=true; if(m.classList.contains('active'))m.classList.remove('active'); }
+                if(isDragging){ e.preventDefault(); w.style.left=(initialLeft+dx)+'px'; w.style.top=(initialTop+dy)+'px'; }
+            }
+            function ed() { document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',ed); document.removeEventListener('touchmove',mv); document.removeEventListener('touchend',ed); }
+            b.addEventListener('click', (e)=>{ if(isDragging){e.preventDefault();e.stopPropagation();}else{m.classList.toggle('active');} });
+            document.addEventListener('click', (e)=>{ if(m.classList.contains('active')&&!w.contains(e.target)){m.classList.remove('active');} });
+        }
+    </script>
+</body>
+</html>
