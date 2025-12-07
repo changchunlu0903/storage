@@ -2,657 +2,1189 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>✨ 我的百宝箱 v8.2 (诊疗版) ✨</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>✨ 梨梨的百宝箱 (安全版) ✨</title>
     <style>
-        @font-face { font-family: 'MyCustomFont'; src: url('https://files.catbox.moe/cweam3.ttf') format('truetype'); font-display: swap; }
-        :root { --primary-color: #ffb7c5; --secondary-color: #ffe6eb; --accent-color: #ff8fa3; --text-color: #6d5c5c; }
-        body { font-family: 'MyCustomFont', sans-serif; background-color: var(--secondary-color); color: var(--text-color); margin: 0; padding: 20px; overflow-x: hidden; padding-bottom: 100px; height: 100vh; overflow: hidden; }
-        body.unlocked { height: auto; overflow: auto; }
-        h1 { text-align: center; color: var(--accent-color); margin: 10px 0 30px 0; font-size: 32px; font-weight: normal;}
+        /* --- 引入定制字体 --- */
+        @font-face {
+            font-family: 'MyCustomFont';
+            src: url('https://files.catbox.moe/cweam3.ttf') format('truetype');
+            font-display: swap;
+        }
 
-        /* 🌸 锁屏层 (最高层级) */
-        #authOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #fff0f5 0%, #ffe6eb 100%); z-index: 99999; display: flex; justify-content: center; align-items: center; flex-direction: column; }
-        .sakura-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
-        .sakura { position: absolute; background: #ffb7c5; border-radius: 100% 0 100% 0; animation: fall linear infinite; opacity: 0.7; }
-        @keyframes fall { 0% { top: -10%; transform: rotate(0deg); } 100% { top: 110%; transform: rotate(360deg); } }
+        :root {
+            --primary-color: #ffb7c5;
+            --secondary-color: #ffe6eb;
+            --accent-color: #ff8fa3;
+            --text-color: #6d5c5c;
+            --radius: 20px;
+            --shadow: 0 8px 24px rgba(255, 183, 197, 0.4);
+            --lock-bg: #fff0f5;
+        }
 
-        /* 认证框 */
-        .auth-box { background: rgba(255,255,255,0.95); padding: 30px; border-radius: 30px; box-shadow: 0 15px 35px rgba(255,183,197,0.3); text-align: center; width: 85%; max-width: 380px; border: 3px solid #fff; position: relative; z-index: 100000; backdrop-filter: blur(5px); }
-        .auth-title { color: var(--accent-color); font-size: 24px; margin-bottom: 20px; font-weight: bold; }
-        .auth-btn { background: linear-gradient(to right, var(--primary-color), var(--accent-color)); color: white; border: none; padding: 12px 20px; border-radius: 25px; font-size: 16px; width: 100%; margin-top: 15px; box-shadow: 0 5px 15px rgba(255,130,150,0.3); display: block; }
-        .auth-btn:active { transform: scale(0.95); opacity: 0.8; }
+        body {
+            font-family: 'MyCustomFont', 'Microsoft YaHei', sans-serif;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0; /* 修改为0，由内部容器控制padding */
+            overflow-x: hidden;
+            height: 100vh;
+        }
+
+        /* ==================== 🌸 樱花特效 & 锁屏样式 ==================== */
         
-        .pin-input { width: 50px; height: 50px; border: 2px solid var(--primary-color); border-radius: 10px; text-align: center; font-size: 24px; margin: 0 5px; background: #fff; color: var(--accent-color); -webkit-text-security: disc;}
-        .switch-link { margin-top: 15px; display: block; color: #888; text-decoration: underline; font-size: 14px; }
+        #lockScreen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff5f7; z-index: 10000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background-image: radial-gradient(#fff 2px, transparent 2px);
+            background-size: 30px 30px;
+        }
+
+        /* 飘落樱花 */
+        .sakura {
+            position: absolute; background: #ffc0cb; border-radius: 100% 0 100% 0; opacity: 0.5;
+            animation: fall linear infinite; pointer-events: none;
+        }
+        @keyframes fall {
+            0% { transform: translate(0, -10vh) rotate(0deg); opacity: 1; }
+            100% { transform: translate(100px, 110vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* 通用卡片样式 */
+        .lock-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 40px 30px;
+            width: 85%; max-width: 400px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(255, 183, 197, 0.3);
+            border: 2px solid #fff;
+            position: relative;
+            z-index: 10;
+            transition: transform 0.3s;
+        }
+
+        .lock-title { font-size: 24px; color: var(--accent-color); margin-bottom: 10px; font-weight: bold; }
+        .lock-subtitle { color: #999; font-size: 14px; margin-bottom: 30px; line-height: 1.6; }
+
+        /* 欢迎页特定样式 (复刻图片) */
+        .welcome-btn {
+            display: block; width: 100%; padding: 18px; border-radius: 50px;
+            margin-bottom: 15px; border: none; font-size: 16px; color: white;
+            font-family: inherit; cursor: pointer; font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: transform 0.2s;
+        }
+        .welcome-btn:active { transform: scale(0.98); }
+        .btn-gesture { background: #ffb7c5; }
+        .btn-pin { background: linear-gradient(90deg, #a8edea 0%, #ffb7c5 100%); }
+
+        /* 数字键盘样式 */
+        .pin-display {
+            display: flex; justify-content: center; gap: 15px; margin-bottom: 30px;
+        }
+        .pin-dot {
+            width: 16px; height: 16px; border-radius: 50%;
+            background: #eee; border: 2px solid #ddd; transition: all 0.2s;
+        }
+        .pin-dot.active { background: var(--accent-color); border-color: var(--accent-color); transform: scale(1.2); }
         
-        #mainContent { display: none; }
-        
-        /* 简单样式重置 */
-        input, select { font-family: inherit; }
-        .float-widget { position: fixed; bottom: 30px; right: 30px; z-index: 10000; }
-        .float-btn { width: 48px; height: 48px; border-radius: 50%; background: #fff; border: 3px solid var(--primary-color); display: flex; justify-content: center; align-items: center; font-size: 24px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; max-width: 280px; margin: 0 auto; }
+        .num-btn {
+            width: 60px; height: 60px; border-radius: 50%; border: none;
+            background: #fff; color: var(--text-color); font-size: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: pointer;
+            font-family: inherit; display: flex; align-items: center; justify-content: center;
+        }
+        .num-btn:active { background: var(--secondary-color); }
+
+        /* 手势图案样式 */
+        .gesture-container { position: relative; width: 300px; height: 300px; margin: 0 auto; touch-action: none; }
+        .gesture-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; }
+        .gesture-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr);
+            width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1;
+        }
+        .gesture-point {
+            display: flex; align-items: center; justify-content: center;
+        }
+        .point-inner {
+            width: 18px; height: 18px; background: #ddd; border-radius: 50%;
+            transition: 0.3s;
+        }
+        .point-inner.active { background: var(--accent-color); box-shadow: 0 0 0 10px rgba(255, 143, 163, 0.2); }
+
+        /* 表单输入框 */
+        .lock-input {
+            width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ffe6eb;
+            border-radius: 12px; text-align: center; font-family: inherit;
+            outline: none; color: var(--text-color);
+        }
+        .lock-input:focus { border-color: var(--accent-color); }
+
+        .back-link {
+            margin-top: 20px; font-size: 13px; color: #bbb; cursor: pointer; text-decoration: underline;
+        }
+
+        /* 消息提示 */
+        .toast {
+            position: fixed; top: 50px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.7); color: white; padding: 10px 20px;
+            border-radius: 30px; font-size: 14px; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s; z-index: 20000;
+        }
+
+        /* ==================== 原有 CSS (加了 app-container 作用域) ==================== */
+        #appContainer {
+            display: none; /* 默认隐藏，解锁后显示 */
+            padding: 20px;
+            padding-bottom: 100px;
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        h1 { text-align: center; color: var(--accent-color); font-weight: normal; margin: 10px 0 30px 0; text-shadow: 2px 2px 0px #fff; font-size: 32px; }
+
+        /* --- 🐶 悬浮窗 --- */
+        .float-widget { position: fixed; bottom: 30px; right: 30px; z-index: 9999; touch-action: none; }
+        .float-btn {
+            width: 48px; height: 48px; border-radius: 50%;
+            background: #fff; border: 3px solid var(--primary-color);
+            box-shadow: 0 5px 15px rgba(255, 117, 143, 0.3);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 24px; cursor: move; user-select: none;
+            transition: transform 0.1s; position: relative;
+        }
+        .float-btn:active { transform: scale(0.9); }
         .float-btn::after { content: '🐶'; }
-        .float-menu { position: absolute; bottom: 60px; right: 0; background: rgba(255,255,255,0.95); padding: 15px; border-radius: 20px; width: 260px; display: none; border: 2px solid #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .float-menu.active { display: block; }
         
-        /* 通用类 */
-        .card { background: #fff; border-radius: 20px; overflow: hidden; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .card img { width: 100%; height: 200px; object-fit: cover; background: #fcecef; }
-        .card-content { padding: 15px; }
-        .search-container input { width: 100%; padding: 12px 20px; border-radius: 50px; border: 2px solid #fff; outline: none; box-sizing: border-box; }
-        .controls { display: flex; gap: 10px; justify-content: center; margin: 20px 0; flex-wrap: wrap; }
-        .controls button { background: #fff; border: 2px solid var(--primary-color); color: var(--accent-color); padding: 8px 15px; border-radius: 20px; font-weight: bold; }
+        .float-menu {
+            position: absolute; bottom: 60px; right: 0;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
+            border-radius: 20px; width: 260px; padding: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15); border: 2px solid #fff;
+            transform-origin: bottom right; transform: scale(0); opacity: 0;
+            transition: all 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            pointer-events: none; max-height: 60vh; display: flex; flex-direction: column;
+        }
+        .float-menu.active { transform: scale(1); opacity: 1; pointer-events: auto; }
+
+        .music-panel { background: var(--secondary-color); border-radius: 15px; padding: 12px; margin-bottom: 15px; text-align: center; }
+        .music-controls { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .play-btn { background: var(--accent-color); color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .nav-panel { flex-grow: 1; overflow-y: auto; }
+        .nav-title { font-weight: bold; color: var(--accent-color); margin-bottom: 8px; border-bottom: 1px dashed #ddd; }
         
-        /* 弹窗 */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 20000; display: none; justify-content: center; align-items: center; }
+        /* --- 卡片与布局 --- */
+        .search-container { max-width: 600px; margin: 0 auto 30px auto; position: relative; }
+        .search-input { width: 100%; padding: 15px 50px 15px 25px; border: 2px solid #fff; border-radius: 50px; background: rgba(255, 255, 255, 0.9); font-size: 16px; outline: none; font-family: inherit; }
+        .search-input:focus { border-color: var(--primary-color); }
+        .search-icon { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); color: var(--primary-color); }
+
+        .controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; flex-wrap: wrap; }
+        button { background: #fff; border: 2px solid var(--primary-color); color: var(--accent-color); padding: 8px 18px; border-radius: 50px; cursor: pointer; font-family: inherit; font-size: 14px; transition: all 0.2s; display: flex; align-items: center; gap: 5px; }
+        button:hover { background: var(--primary-color); color: white; transform: translateY(-2px); }
+        button.primary-btn { background: var(--accent-color); color: white; border: none; }
+
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
+        .card { background: #fff; border-radius: var(--radius); overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: transform 0.3s; border: 3px solid #fff; display: flex; flex-direction: column; cursor: pointer; position: relative; }
+        .card:hover { transform: translateY(-5px); border-color: var(--primary-color); }
+        .card-img-wrapper { height: 200px; background-color: #fcecef; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+        .card img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .content-indicators { position: absolute; top: 8px; left: 8px; display: flex; gap: 4px; flex-wrap: wrap; }
+        .indicator { background: rgba(255,255,255,0.95); padding: 2px 6px; border-radius: 6px; font-size: 12px; color: var(--text-color); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        
+        .card-content { padding: 10px; flex-grow: 1; display: flex; flex-direction: column; }
+        .card-title { font-size: 18px; margin: 0 0 5px 0; color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .tags-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: auto; }
+        .tag-pill { background: var(--secondary-color); color: var(--accent-color); font-size: 12px; padding: 2px 6px; border-radius: 8px; }
+
+        /* --- 弹窗 --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 240, 245, 0.85); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 2000; }
         .modal-overlay.active { display: flex; }
-        .modal { background: #fff; width: 90%; max-width: 500px; padding: 25px; border-radius: 25px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); border: 2px solid var(--secondary-color); max-height: 80vh; overflow-y: auto; }
-        .form-group { margin-bottom: 15px; } label { display: block; margin-bottom: 5px; color: var(--accent-color); }
-        input[type="text"], input[type="file"], select { width: 100%; padding: 10px; border: 2px solid var(--secondary-color); border-radius: 10px; box-sizing: border-box; }
-        .resource-list { border: 1px solid #eee; padding: 10px; border-radius: 10px; margin-bottom: 10px; max-height: 150px; overflow-y: auto; }
-        .resource-item { display: flex; justify-content: space-between; align-items: center; background: #f9f9f9; padding: 5px; margin-bottom: 5px; border-radius: 5px; font-size: 12px; }
+        .modal { background: white; padding: 25px; border-radius: 25px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: 0 15px 40px rgba(255, 130, 150, 0.2); position: relative; }
+        .close-modal { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 28px; cursor: pointer; color: #ccc; }
+
+        /* ...保留原有的其他CSS... */
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 16px; color: var(--accent-color); }
+        input[type="text"], select { width: 100%; padding: 10px; border: 2px solid var(--secondary-color); border-radius: 12px; outline: none; box-sizing: border-box; background: #fff; font-family: inherit; font-size: 15px; }
+        
+        .tag-input-area { border: 2px solid var(--secondary-color); border-radius: 12px; padding: 8px; display: flex; flex-wrap: wrap; gap: 5px; min-height: 40px; }
+        .tag-input-area input { border: none; outline: none; flex-grow: 1; padding: 5px; font-family: inherit; }
+        .tag-chip { background: var(--primary-color); color: white; padding: 3px 8px; border-radius: 10px; font-size: 14px; display: flex; gap: 5px; align-items: center; }
+
+        .resource-list { border: 1px solid #eee; border-radius: 12px; padding: 10px; max-height: 200px; overflow-y: auto; background: #fafafa; }
+        .resource-item { display: flex; align-items: center; gap: 10px; background: white; padding: 8px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #f0f0f0; }
+        .resource-preview { width: 40px; height: 40px; border-radius: 5px; object-fit: cover; background: #eee; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 20px;}
+        .resource-info { flex-grow: 1; min-width: 0; }
+        .resource-name { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .resource-type-select { font-size: 12px; padding: 2px; border: 1px solid #ddd; border-radius: 4px; margin-top: 2px; font-family: inherit; }
+        .btn-remove { background: #ffdede; color: #ff6b6b; border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; font-weight: bold; }
+
+        .add-btn-row { display: flex; gap: 10px; margin-top: 5px; }
+        .small-btn { font-size: 14px; padding: 5px 12px; }
+
+        .gallery-container { position: relative; width: 100%; height: 320px; background: #fafafa; border-radius: 15px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; border: 1px solid #eee; flex-direction: column;}
+        .gallery-img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .gallery-type-label { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; z-index: 10; }
+        
+        .gallery-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.8); border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); user-select: none; z-index: 10; }
+        .nav-prev { left: 10px; } .nav-next { right: 10px; }
+        .cover-btn { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9); border: 2px solid var(--accent-color); color: var(--accent-color); font-size: 12px; padding: 4px 10px; cursor: pointer; border-radius: 20px; z-index: 10; font-family: inherit; }
+        .cover-btn.is-cover { background: var(--accent-color); color: white; }
+        .download-img-btn { position: absolute; bottom: 10px; right: 10px; background: rgba(255,255,255,0.9); border: 2px solid var(--primary-color); color: var(--primary-color); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); z-index: 10; transition: all 0.2s;}
+        
+        .detail-list { margin-top: 10px; }
+        .detail-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed #eee; font-size: 14px; }
+        .detail-item-type { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; color: #888; margin-right: 5px; font-size: 12px; }
+        
+        .action-link { 
+            color: var(--accent-color); text-decoration: none; cursor: pointer; font-weight: bold; font-size: 12px;
+            background: #fff0f3; padding: 4px 8px; border-radius: 4px; transition: background 0.2s;
+        }
+        .action-link:hover { background: var(--primary-color); color: white; }
+
+        .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        .empty-state { grid-column: 1 / -1; text-align: center; color: #cea0a9; padding: 50px; font-size: 18px; }
+        .edit-btn { background: #fff8e1; border-color: #ffc107; color: #ffb300; }
+        
+        input[type="file"] { display: none; }
     </style>
 </head>
 <body>
 
-    <div id="authOverlay">
-        <div class="sakura-bg" id="sakuraBg"></div>
-        
-        <div class="auth-box" id="setupBox">
-            <div class="auth-title">🌸 欢迎</div>
-            <div style="margin-bottom:20px; color:#999;">第一次来，请设置密码</div>
-            <button class="auth-btn" onclick="app.showBox('gestureBox')">设置手势密码</button>
-            <button class="auth-btn" onclick="app.showBox('pinBox')" style="background: linear-gradient(to right, #a18cd1, #fbc2eb);">设置数字密码</button>
-            <div style="margin-top:20px; font-size:12px; color:#ccc;" id="dbStatus">数据库检查中...</div>
+    <div id="lockScreen">
+        <div id="sakuraContainer"></div>
+
+        <div id="view-welcome" class="lock-card" style="display:none;">
+            <div style="font-size:40px; margin-bottom:10px;">🌸</div>
+            <div class="lock-title">欢迎来到你的百宝箱</div>
+            <div class="lock-subtitle">第一次来，先给自己挑一把钥匙吧！</div>
+            
+            <button class="welcome-btn btn-gesture" onclick="auth.startSetup('gesture')">我是手势控 (连线解锁)</button>
+            <button class="welcome-btn btn-pin" onclick="auth.startSetup('pin')">我是数字控 (PIN码解锁)</button>
         </div>
 
-        <div class="auth-box" id="gestureBox" style="display:none;">
-            <div class="auth-title" id="gTitle">绘制图案</div>
-            <canvas id="gestureCanvas" width="300" height="300" style="background:#fff5f7; border-radius:15px;"></canvas>
-            <div class="switch-link" onclick="app.showBox('setupBox')">返回</div>
-        </div>
-
-        <div class="auth-box" id="pinBox" style="display:none;">
-            <div class="auth-title" id="pTitle">输入4位数字</div>
-            <div style="display:flex; justify-content:center; margin:20px 0;">
-                <input type="number" class="pin-input" maxlength="1" id="p1">
-                <input type="number" class="pin-input" maxlength="1" id="p2">
-                <input type="number" class="pin-input" maxlength="1" id="p3">
-                <input type="number" class="pin-input" maxlength="1" id="p4">
+        <div id="view-setup-question" class="lock-card" style="display:none;">
+            <div class="lock-title">🔐 安全保障</div>
+            <div class="lock-subtitle">万一忘了密码，这个可以救你！</div>
+            
+            <div class="form-group" style="text-align:left;">
+                <label>设置一个安全问题</label>
+                <input type="text" id="secQuestion" class="lock-input" placeholder="例如：我的第一只宠物是？">
             </div>
-            <div class="switch-link" onclick="app.showBox('setupBox')" id="pinBack">返回</div>
-            <div class="switch-link" onclick="app.showBox('secBox')" id="pinForgot" style="display:none">忘记密码?</div>
+            <div class="form-group" style="text-align:left;">
+                <label>问题的答案</label>
+                <input type="text" id="secAnswer" class="lock-input" placeholder="输入答案">
+            </div>
+            
+            <button class="welcome-btn btn-gesture" onclick="auth.saveSecurityQuestion()">完成设置</button>
         </div>
 
-        <div class="auth-box" id="secBox" style="display:none;">
-            <div class="auth-title">安全保护</div>
-            <input type="text" id="qInput" placeholder="问题 (如: 初恋名字)">
-            <br><br>
-            <input type="text" id="aInput" placeholder="答案">
-            <button class="auth-btn" onclick="app.finishSetup()" id="saveSecBtn">保存并进入</button>
-            <button class="auth-btn" onclick="app.verifyReset()" id="verSecBtn" style="display:none">验证并重置</button>
-            <div class="switch-link" onclick="location.reload()" id="cancelReset" style="display:none">取消</div>
+        <div id="view-pin" class="lock-card" style="display:none;">
+            <div class="lock-title" id="pinTitle">请输入密码</div>
+            <div class="lock-subtitle" id="pinSub">输入4位数字密码</div>
+            
+            <div class="pin-display" id="pinDots">
+                <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+            </div>
+            
+            <div class="numpad">
+                <button class="num-btn" onclick="auth.inputPin(1)">1</button>
+                <button class="num-btn" onclick="auth.inputPin(2)">2</button>
+                <button class="num-btn" onclick="auth.inputPin(3)">3</button>
+                <button class="num-btn" onclick="auth.inputPin(4)">4</button>
+                <button class="num-btn" onclick="auth.inputPin(5)">5</button>
+                <button class="num-btn" onclick="auth.inputPin(6)">6</button>
+                <button class="num-btn" onclick="auth.inputPin(7)">7</button>
+                <button class="num-btn" onclick="auth.inputPin(8)">8</button>
+                <button class="num-btn" onclick="auth.inputPin(9)">9</button>
+                <div></div>
+                <button class="num-btn" onclick="auth.inputPin(0)">0</button>
+                <button class="num-btn" style="color:#ff6b6b" onclick="auth.clearPin()">🔙</button>
+            </div>
+            <div class="back-link" id="pinForgotBtn" onclick="auth.showRecovery()" style="display:none">忘记密码？</div>
+        </div>
+
+        <div id="view-gesture" class="lock-card" style="display:none;">
+            <div class="lock-title" id="gestTitle">绘制图案</div>
+            <div class="lock-subtitle" id="gestSub">请绘制你的解锁图案</div>
+            
+            <div class="gesture-container" id="gestureArea">
+                <div class="gesture-grid">
+                    <div class="gesture-point"><div class="point-inner" data-idx="0"></div></div>
+                    <div class="gesture-point"><div class="point-inner" data-idx="1"></div></div>
+                    <div class="gesture-point"><div class="point-inner" data-idx="2"></div></div>
+                    <div class="gesture-point"><div class="point-inner" data-idx="3"></div></div>
+                    <div class="gesture-point"><div class="point-inner" data-idx="4"></div></div>
+                    <div class="gesture-point"><div class="point-inner" data-idx="5"></div></div>
+                    <div class="gesture-point"><div class="point-inner" data-idx="6"></div></div>
+                    <div class="gesture-point"><div class="point-inner" data-idx="7"></div></div>
+                    <div class="gesture-point"><div class="point-inner" data-idx="8"></div></div>
+                </div>
+                <canvas id="gestureCanvas" width="300" height="300"></canvas>
+            </div>
+            <div class="back-link" id="gestForgotBtn" onclick="auth.showRecovery()" style="display:none">忘记密码？</div>
+            <div class="back-link" id="gestResetBtn" onclick="auth.resetGesture()" style="display:none">重绘</div>
+        </div>
+
+        <div id="view-recovery" class="lock-card" style="display:none;">
+            <div class="lock-title">😟 忘记密码了？</div>
+            <div class="lock-subtitle" id="recoveryQText">回答你的安全问题</div>
+            
+            <input type="text" id="recoveryAnswer" class="lock-input" placeholder="输入答案">
+            <button class="welcome-btn btn-gesture" onclick="auth.checkRecovery()">验证</button>
+            <div class="back-link" onclick="location.reload()">返回</div>
         </div>
     </div>
 
-    <div id="mainContent">
-        <h1>🌸 我的百宝箱 🌸</h1>
-        
-        <div class="float-widget">
-            <div class="float-menu" id="fMenu">
-                <div style="text-align:center; margin-bottom:10px; color:#aaa; font-size:12px;">🎵 音乐播放</div>
-                <input type="text" id="musicUrl" placeholder="MP3链接..." style="font-size:10px; padding:2px; width:90%;">
-                <div style="margin-top:5px; display:flex; justify-content:center; gap:10px;">
-                    <button onclick="document.getElementById('bgAudio').play()">▶</button>
-                    <button onclick="document.getElementById('bgAudio').pause()">⏸</button>
+    <div id="toast" class="toast">提示信息</div>
+
+    <div id="appContainer">
+        <h1>🌸 我的百宝箱 v7.0 🌸</h1>
+
+        <div class="float-widget" id="floatWidget">
+            <div class="float-menu" id="floatMenu">
+                <div class="music-panel">
+                    <div style="font-size:12px; color:#aaa; margin-bottom:5px;">🎧 背景音乐</div>
+                    <div class="music-controls">
+                        <button class="play-btn" onclick="toggleMusic()" id="playBtn">▶</button>
+                        <input type="range" min="0" max="1" step="0.1" value="0.5" onchange="changeVolume(this)" style="width:60px; accent-color:var(--accent-color)">
+                    </div>
+                    <input type="text" style="width:100%;font-size:10px;padding:4px;border:1px solid #ddd;border-radius:5px;" id="musicLink" placeholder="输入mp3链接..." onchange="updateMusicSrc(this.value)">
+                    <audio id="bgMusic" loop></audio>
                 </div>
-                <audio id="bgAudio" loop></audio>
-                <div style="border-top:1px dashed #eee; margin:10px 0;"></div>
-                <div style="font-weight:bold; color:var(--accent-color);">🏷️ 导航</div>
-                <div id="navContent"></div>
+                <div class="nav-panel" id="navPanel">
+                    <div class="nav-title">🏷️ 快速跳转</div>
+                </div>
             </div>
-            <div class="float-btn" id="fBtn"></div>
+            <div class="float-btn" id="floatBtn"></div>
         </div>
 
-        <div class="search-container"><input type="text" id="search" placeholder="搜索..." oninput="app.search()"></div>
+        <div class="search-container">
+            <input type="text" class="search-input" id="searchInput" placeholder="搜索名称或标签..." oninput="handleSearch()">
+            <span class="search-icon">🔍</span>
+        </div>
+
         <div class="controls">
-            <button onclick="app.openAdd()">➕ 添加</button>
-            <button onclick="app.export()">💾 备份</button>
-            <button onclick="document.getElementById('impFile').click()">📂 导入</button>
-            <input type="file" id="impFile" hidden onchange="app.import(this)">
+            <button onclick="openAddModal()" class="primary-btn"><span>➕</span> 添加素材</button>
+            <button onclick="exportAllData()"><span>💾</span> 备份全部</button>
+            <button onclick="document.getElementById('importAllInput').click()"><span>📂</span> 导入备份</button>
+            <input type="file" id="importAllInput" accept=".json" onchange="importAllData(this)">
         </div>
-        <div class="grid-container" id="grid"></div>
+
+        <div class="grid-container" id="gridContainer">
+            <div class="empty-state">正在初始化数据库... 💾</div>
+        </div>
     </div>
 
-    <div class="modal-overlay" id="editor">
+    <div class="modal-overlay" id="addModal">
         <div class="modal">
-            <h2 id="eTitle">✨ 添加</h2>
-            <div class="form-group"><label>名字</label><input id="eName"></div>
-            <div class="form-group"><label>标签</label><input id="eTags" placeholder="空格分隔"></div>
+            <button class="close-modal" onclick="closeAddModal()">×</button>
+            <h2 id="modalTitle">✨ 添加新收藏</h2>
+            
             <div class="form-group">
-                <label>文件列表</label>
-                <div class="resource-list" id="eList"></div>
-                <div style="display:flex; gap:5px; margin-top:5px;">
-                    <button onclick="document.getElementById('addImg').click()" style="font-size:12px">🖼️ 图片</button>
-                    <button onclick="document.getElementById('addJson').click()" style="font-size:12px">📄 JSON</button>
-                    <button onclick="app.addLink()" style="font-size:12px">🔗 链接</button>
-                </div>
-                <input type="file" id="addImg" hidden multiple accept="image/*">
-                <input type="file" id="addJson" hidden multiple accept=".json">
+                <label>💖 名字</label>
+                <input type="text" id="itemName" placeholder="给这个盒子起个名字...">
             </div>
-            <div style="text-align:right; margin-top:20px;">
-                <button onclick="document.getElementById('editor').classList.remove('active')" style="border:none; color:#999;">取消</button>
-                <button onclick="app.save()" style="background:var(--accent-color); color:white; border:none; padding:8px 20px; border-radius:20px;">保存</button>
+
+            <div class="form-group">
+                <label>🏷️ 标签 (回车添加)</label>
+                <div class="tag-input-area" id="tagInputArea" onclick="document.getElementById('tagInput').focus()">
+                    <input type="text" id="tagInput" onkeydown="handleTagInput(event)">
+                </div>
+                <div id="suggestedTags" style="margin-top:5px; display:flex; gap:5px; flex-wrap:wrap;"></div>
+            </div>
+
+            <div class="form-group">
+                <label>📦 包含的文件与链接</label>
+                <div class="resource-list" id="resourceList">
+                    <div style="text-align:center; color:#ccc; font-size:12px; padding:20px;">暂无内容，请点击下方按钮添加</div>
+                </div>
+
+                <div class="add-btn-row">
+                    <label class="upload-area small-btn">
+                        🖼️ 加图片
+                        <input type="file" accept="image/*" multiple onchange="handleImageSelect(this)">
+                    </label>
+                    <label class="upload-area small-btn">
+                        📄 加JSON
+                        <input type="file" accept=".json,application/json" multiple onchange="handleJsonSelect(this)">
+                    </label>
+                    <button class="small-btn" onclick="openLinkInput()">🔗 加链接</button>
+                </div>
+                
+                <div id="linkInputArea" style="display:none; margin-top:10px; background:#f9f9f9; padding:10px; border-radius:10px;">
+                    <input type="text" id="newLinkName" placeholder="链接名称 (如: 作者主页)" style="margin-bottom:5px;">
+                    <input type="text" id="newLinkUrl" placeholder="网址 (http://...)" style="margin-bottom:5px;">
+                    <div style="text-align:right;">
+                        <button class="small-btn" onclick="confirmAddLink()">确定</button>
+                        <button class="small-btn" style="background:#eee; color:#666; border:none" onclick="document.getElementById('linkInputArea').style.display='none'">取消</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-buttons">
+                <button onclick="closeAddModal()">取消</button>
+                <button class="primary-btn" onclick="saveItem()">💾 保存</button>
             </div>
         </div>
     </div>
 
-    <div class="modal-overlay" id="viewer">
+    <div class="modal-overlay" id="detailModal">
         <div class="modal">
-            <h2 id="vName" style="text-align:center;"></h2>
-            <img id="vImg" style="width:100%; border-radius:10px; max-height:300px; object-fit:contain; background:#f9f9f9;">
-            <div style="display:flex; justify-content:center; gap:10px; margin:10px 0;">
-                <button onclick="app.prevImg()">❮</button>
-                <button onclick="app.setCover()">设为封面</button>
-                <button onclick="app.downImg()">⬇️</button>
-                <button onclick="app.nextImg()">❯</button>
+            <button class="close-modal" onclick="closeDetailModal()">×</button>
+            <h2 id="detailName" style="text-align:center; margin-bottom:5px;"></h2>
+            <div id="detailTags" style="display:flex; justify-content:center; gap:5px; margin-bottom:15px;"></div>
+
+            <div id="galleryArea">
+                <div class="gallery-container">
+                    <div class="gallery-type-label" id="galleryTypeLabel">类型</div>
+                    <img id="detailImg" class="gallery-img" src="">
+                    <div class="gallery-nav nav-prev" onclick="changeGalleryImage(-1)">❮</div>
+                    <div class="gallery-nav nav-next" onclick="changeGalleryImage(1)">❯</div>
+                    
+                    <button id="setCoverBtn" class="cover-btn" onclick="setAsCover()">设为封面</button>
+                    <button class="download-img-btn" onclick="downloadCurrentGalleryImg()" title="下载此图">⬇️</button>
+                    <div style="position:absolute; bottom:10px; left:10px; background:rgba(0,0,0,0.5); color:white; padding:2px 8px; border-radius:10px; font-size:12px; pointer-events:none;">
+                        <span id="imgIndex">1</span> / <span id="imgTotal">1</span>
+                    </div>
+                </div>
             </div>
-            <div class="resource-list" id="vList"></div>
-            <div style="text-align:right; margin-top:20px;">
-                <button onclick="app.edit()" style="color:orange; border:none; margin-right:10px;">编辑</button>
-                <button onclick="app.del()" style="color:red; border:none;">删除</button>
-                <button onclick="document.getElementById('viewer').classList.remove('active')" style="color:#999; border:none; margin-left:10px;">关闭</button>
+            <div id="noImgMsg" style="text-align:center; color:#ccc; padding:20px; display:none;">(此盒子没有图片)</div>
+
+            <div class="form-group">
+                <label>📂 盒子内容</label>
+                <div id="detailListContainer" class="detail-list"></div>
+            </div>
+
+            <div class="modal-buttons" style="justify-content: center; flex-wrap:wrap;">
+                <button class="edit-btn" onclick="openEditMode()">✏️ 编辑盒子内容</button>
+                <button onclick="deleteCurrentItem()" style="border-color: #ffcccc; color: #ff6b6b;">🗑️ 删除盒子</button>
             </div>
         </div>
     </div>
 
-<script>
-// 全局应用逻辑
-const app = {
-    db: null,
-    items: [],
-    draft: [],
-    currIdx: -1,
-    imgIdx: 0,
-    tempAuth: {},
-    
-    init: async function() {
-        try {
-            // 樱花
-            const bg = document.getElementById('sakuraBg');
-            for(let i=0;i<15;i++){ let d=document.createElement('div');d.className='sakura';d.style.left=Math.random()*100+'%';d.style.animationDuration=(5+Math.random()*5)+'s';d.style.animationDelay=Math.random()*5+'s';d.style.width=d.style.height=(10+Math.random()*10)+'px';bg.appendChild(d); }
+    <script>
+        // ================= 🔒 安全系统逻辑 (AuthSystem) =================
+        
+        const auth = {
+            mode: 'login', // login, setup, verify
+            type: null,    // pin, gesture
+            step: 0,       // for setup confirmation
+            tempSecret: null,
+            inputBuffer: '',
+            failCount: 0,
             
-            // 数据库
-            const req = indexedDB.open('MyMagicBox_v8', 1);
-            req.onupgradeneeded = e => {
-                const db = e.target.result;
-                if(!db.objectStoreNames.contains('data')) db.createObjectStore('data', {keyPath: 'id'});
-                if(!db.objectStoreNames.contains('config')) db.createObjectStore('config', {keyPath: 'key'});
-            };
-            req.onsuccess = e => {
-                this.db = e.target.result;
-                document.getElementById('dbStatus').innerText = "数据库连接成功";
-                this.checkAuth();
-                this.loadData();
-            };
-            req.onerror = e => {
-                alert("数据库打开失败，可能是浏览器的隐私模式禁止了存储。");
-                document.getElementById('dbStatus').innerText = "⚠️ 存储不可用";
-            };
-
-            // 绑定事件
-            this.bindEvents();
-            
-        } catch(err) {
-            alert("初始化严重错误: " + err.message);
-        }
-    },
-
-    bindEvents: function() {
-        // PIN 输入
-        const pins = document.querySelectorAll('.pin-input');
-        pins.forEach((p, i) => {
-            p.oninput = () => {
-                if(p.value.length === 1) {
-                    if(i < 3) pins[i+1].focus();
-                    else this.checkPin();
+            init: function() {
+                // 生成樱花
+                this.createSakura();
+                
+                // 检查是否有存储的密码
+                const savedType = localStorage.getItem('magic_auth_type');
+                const savedSecret = localStorage.getItem('magic_auth_secret');
+                
+                if (!savedType || !savedSecret) {
+                    this.showView('view-welcome');
+                } else {
+                    this.mode = 'login';
+                    this.type = savedType;
+                    if (this.type === 'pin') this.showView('view-pin');
+                    else this.showView('view-gesture');
+                    
+                    // 手势需要初始化Canvas监听
+                    if (this.type === 'gesture') setTimeout(() => this.initGesture(), 100);
                 }
-            };
-        });
+            },
 
-        // 文件上传
-        document.getElementById('addImg').onchange = async e => {
-            for(let f of e.target.files) this.draft.push({type:'img', name:f.name, content: await this.readFile(f)});
-            this.renderDraft();
-        };
-        document.getElementById('addJson').onchange = async e => {
-            for(let f of e.target.files) this.draft.push({type:'json', name:f.name, content: await this.readText(f)});
-            this.renderDraft();
-        };
+            createSakura: function() {
+                const container = document.getElementById('sakuraContainer');
+                for(let i=0; i<15; i++) {
+                    const el = document.createElement('div');
+                    el.className = 'sakura';
+                    el.style.left = Math.random() * 100 + '%';
+                    el.style.animationDuration = (Math.random() * 5 + 5) + 's';
+                    el.style.animationDelay = Math.random() * 5 + 's';
+                    container.appendChild(el);
+                }
+            },
 
-        // 悬浮窗
-        const btn = document.getElementById('fBtn');
-        const menu = document.getElementById('fMenu');
-        btn.onclick = () => { menu.classList.toggle('active'); };
-        document.addEventListener('click', e => {
-            if(!btn.contains(e.target) && !menu.contains(e.target)) menu.classList.remove('active');
-        });
-    },
+            showView: function(id) {
+                ['view-welcome', 'view-pin', 'view-gesture', 'view-setup-question', 'view-recovery'].forEach(v => {
+                    document.getElementById(v).style.display = 'none';
+                });
+                document.getElementById(id).style.display = 'block';
+                if(id === 'view-pin') this.updatePinDots();
+            },
 
-    // --- 认证模块 ---
-    checkAuth: function() {
-        const tx = this.db.transaction('config', 'readonly');
-        const req = tx.objectStore('config').get('auth');
-        req.onsuccess = e => {
-            if(e.target.result) {
-                this.tempAuth = e.target.result; // 保存真实密码
-                this.showLogin();
-            } else {
-                document.getElementById('setupBox').style.display = 'block';
+            toast: function(msg) {
+                const t = document.getElementById('toast');
+                t.textContent = msg; t.style.opacity = 1;
+                setTimeout(() => t.style.opacity = 0, 2000);
+            },
+
+            // --- 流程控制 ---
+            startSetup: function(type) {
+                this.mode = 'setup';
+                this.type = type;
+                this.step = 1;
+                this.inputBuffer = '';
+                
+                if (type === 'pin') {
+                    document.getElementById('pinTitle').textContent = '设置密码';
+                    document.getElementById('pinSub').textContent = '请输入4位新密码';
+                    this.showView('view-pin');
+                } else {
+                    document.getElementById('gestTitle').textContent = '绘制图案';
+                    document.getElementById('gestSub').textContent = '请绘制解锁图案';
+                    this.showView('view-gesture');
+                    setTimeout(() => this.initGesture(), 100);
+                }
+            },
+
+            // --- 数字密码逻辑 ---
+            inputPin: function(num) {
+                if (this.inputBuffer.length < 4) {
+                    this.inputBuffer += num;
+                    this.updatePinDots();
+                    if (this.inputBuffer.length === 4) {
+                        setTimeout(() => this.submitPin(), 200);
+                    }
+                }
+            },
+            clearPin: function() {
+                this.inputBuffer = '';
+                this.updatePinDots();
+            },
+            updatePinDots: function() {
+                const dots = document.getElementById('pinDots').children;
+                for(let i=0; i<4; i++) {
+                    if(i < this.inputBuffer.length) dots[i].classList.add('active');
+                    else dots[i].classList.remove('active');
+                }
+            },
+            submitPin: function() {
+                const val = this.inputBuffer;
+                this.inputBuffer = '';
+                this.updatePinDots();
+
+                if (this.mode === 'setup') {
+                    if (this.step === 1) {
+                        this.tempSecret = val;
+                        this.step = 2;
+                        document.getElementById('pinTitle').textContent = '再次确认';
+                        document.getElementById('pinSub').textContent = '请再次输入以确认';
+                    } else {
+                        if (val === this.tempSecret) {
+                            this.finishPasswordSetup(val);
+                        } else {
+                            this.toast('两次输入不一致，请重试');
+                            this.step = 1;
+                            document.getElementById('pinTitle').textContent = '设置密码';
+                        }
+                    }
+                } else if (this.mode === 'login') {
+                    if (val === localStorage.getItem('magic_auth_secret')) {
+                        this.unlockApp();
+                    } else {
+                        this.handleFail();
+                    }
+                }
+            },
+
+            // --- 手势密码逻辑 ---
+            initGesture: function() {
+                const canvas = document.getElementById('gestureCanvas');
+                const ctx = canvas.getContext('2d');
+                const area = document.getElementById('gestureArea');
+                let isDrawing = false;
+                let path = []; // 存储点索引 [0,1,2...]
+
+                const getPoint = (x, y) => {
+                    const rect = area.getBoundingClientRect();
+                    const rx = x - rect.left;
+                    const ry = y - rect.top;
+                    // 简单判定：3x3网格
+                    const col = Math.floor(rx / (300/3));
+                    const row = Math.floor(ry / (300/3));
+                    if(col>=0 && col<3 && row>=0 && row<3) return row*3 + col;
+                    return -1;
+                };
+
+                const draw = (curX, curY) => {
+                    ctx.clearRect(0, 0, 300, 300);
+                    ctx.strokeStyle = '#ffb7c5';
+                    ctx.lineWidth = 4;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    
+                    if(path.length > 0) {
+                        ctx.beginPath();
+                        const p0 = getCenter(path[0]);
+                        ctx.moveTo(p0.x, p0.y);
+                        for(let i=1; i<path.length; i++) {
+                            const p = getCenter(path[i]);
+                            ctx.lineTo(p.x, p.y);
+                        }
+                        if(curX !== null) ctx.lineTo(curX, curY);
+                        ctx.stroke();
+                    }
+                    
+                    // 高亮圆点
+                    document.querySelectorAll('.point-inner').forEach((el, i) => {
+                        if(path.includes(i)) el.classList.add('active');
+                        else el.classList.remove('active');
+                    });
+                };
+
+                const getCenter = (idx) => {
+                    const row = Math.floor(idx/3), col = idx%3;
+                    return { x: col*100 + 50, y: row*100 + 50 };
+                };
+
+                const start = (e) => {
+                    e.preventDefault();
+                    isDrawing = true;
+                    path = [];
+                    move(e);
+                };
+
+                const move = (e) => {
+                    if(!isDrawing) return;
+                    e.preventDefault();
+                    const touch = e.touches ? e.touches[0] : e;
+                    const rect = canvas.getBoundingClientRect();
+                    const x = touch.clientX - rect.left;
+                    const y = touch.clientY - rect.top;
+                    
+                    const idx = getPoint(touch.clientX, touch.clientY);
+                    if(idx !== -1 && !path.includes(idx)) {
+                        path.push(idx);
+                    }
+                    draw(x, y);
+                };
+
+                const end = () => {
+                    if(!isDrawing) return;
+                    isDrawing = false;
+                    draw(null, null); // 清除拖尾
+                    
+                    if(path.length < 3) {
+                        this.toast('连接的点太少啦');
+                        path = []; draw(null,null);
+                        return;
+                    }
+                    
+                    const code = path.join('');
+                    if(this.mode === 'setup') {
+                        if(this.step === 1) {
+                            this.tempSecret = code;
+                            this.step = 2;
+                            document.getElementById('gestTitle').textContent = '再次绘制';
+                            document.getElementById('gestSub').textContent = '请再次绘制以确认';
+                            document.getElementById('gestResetBtn').style.display = 'block';
+                            setTimeout(()=>{ path=[]; draw(null,null); }, 500);
+                        } else {
+                            if(code === this.tempSecret) {
+                                this.finishPasswordSetup(code);
+                            } else {
+                                this.toast('两次绘制不一致');
+                                this.step = 1;
+                                document.getElementById('gestTitle').textContent = '绘制图案';
+                                setTimeout(()=>{ path=[]; draw(null,null); }, 500);
+                            }
+                        }
+                    } else if(this.mode === 'login') {
+                        if(code === localStorage.getItem('magic_auth_secret')) {
+                            this.unlockApp();
+                        } else {
+                            this.handleFail();
+                            setTimeout(()=>{ path=[]; draw(null,null); }, 500);
+                        }
+                    }
+                };
+
+                // 绑定事件
+                canvas.addEventListener('mousedown', start);
+                canvas.addEventListener('mousemove', move);
+                document.addEventListener('mouseup', end);
+                canvas.addEventListener('touchstart', start, {passive:false});
+                canvas.addEventListener('touchmove', move, {passive:false});
+                canvas.addEventListener('touchend', end);
+
+                this.resetGesture = () => {
+                    this.step = 1; this.tempSecret = null;
+                    document.getElementById('gestTitle').textContent = '绘制图案';
+                    document.getElementById('gestSub').textContent = '请绘制解锁图案';
+                    document.getElementById('gestResetBtn').style.display = 'none';
+                    path = []; draw(null,null);
+                };
+            },
+
+            // --- 共同逻辑 ---
+            finishPasswordSetup: function(secret) {
+                // 暂时保存，跳转到安全问题
+                this.finalSecret = secret;
+                this.finalType = this.type;
+                this.showView('view-setup-question');
+            },
+
+            saveSecurityQuestion: function() {
+                const q = document.getElementById('secQuestion').value.trim();
+                const a = document.getElementById('secAnswer').value.trim();
+                if(!q || !a) { this.toast('请填写完整哦'); return; }
+
+                localStorage.setItem('magic_auth_type', this.finalType);
+                localStorage.setItem('magic_auth_secret', this.finalSecret);
+                localStorage.setItem('magic_auth_q', q);
+                localStorage.setItem('magic_auth_a', a);
+                
+                this.toast('设置成功！下次请使用密码登录');
+                this.unlockApp();
+            },
+
+            handleFail: function() {
+                this.failCount++;
+                this.toast('密码错误');
+                document.querySelectorAll('.lock-card').forEach(c => {
+                    c.style.transform = 'translateX(10px)';
+                    setTimeout(() => c.style.transform = 'translateX(-10px)', 100);
+                    setTimeout(() => c.style.transform = 'translateX(0)', 200);
+                });
+                
+                if(this.failCount >= 3) {
+                    if(this.type==='pin') document.getElementById('pinForgotBtn').style.display='block';
+                    else document.getElementById('gestForgotBtn').style.display='block';
+                }
+            },
+
+            showRecovery: function() {
+                const q = localStorage.getItem('magic_auth_q');
+                if(!q) { this.toast('未设置安全问题，无法找回'); return; }
+                document.getElementById('recoveryQText').textContent = q;
+                this.showView('view-recovery');
+            },
+
+            checkRecovery: function() {
+                const ans = document.getElementById('recoveryAnswer').value.trim();
+                if(ans === localStorage.getItem('magic_auth_a')) {
+                    // 验证成功，清除所有密码设置，重回首页
+                    localStorage.removeItem('magic_auth_type');
+                    localStorage.removeItem('magic_auth_secret');
+                    this.toast('验证成功，请重新设置密码');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    this.toast('答案错误');
+                }
+            },
+
+            unlockApp: function() {
+                const lock = document.getElementById('lockScreen');
+                lock.style.transition = 'opacity 0.5s';
+                lock.style.opacity = 0;
+                setTimeout(() => {
+                    lock.style.display = 'none';
+                    document.getElementById('appContainer').style.display = 'block';
+                    // 触发原有初始化
+                    if(!window.appInitialized) {
+                        initOriginalApp();
+                        window.appInitialized = true;
+                    }
+                }, 500);
             }
         };
-    },
 
-    showBox: function(id) {
-        document.querySelectorAll('.auth-box').forEach(b => b.style.display = 'none');
-        document.getElementById(id).style.display = 'block';
-        if(id === 'gestureBox') this.initGesture();
-    },
 
-    showLogin: function() {
-        document.querySelectorAll('.auth-box').forEach(b => b.style.display = 'none');
-        if(this.tempAuth.type === 'gesture') {
-            document.getElementById('gestureBox').style.display = 'block';
-            document.getElementById('gTitle').innerText = '🌸 滑动解锁';
-            document.querySelector('#gestureBox .switch-link').style.display = 'none';
-            // 添加忘记密码链接
-            if(!document.getElementById('forgotG')) {
-                let a = document.createElement('div'); a.id='forgotG'; a.className='switch-link'; a.innerText='忘记密码?'; 
-                a.onclick=()=>this.startReset(); document.getElementById('gestureBox').appendChild(a);
-            }
-            this.initGesture(true);
-        } else {
-            document.getElementById('pinBox').style.display = 'block';
-            document.getElementById('pTitle').innerText = '🌸 输入PIN码';
-            document.getElementById('pinBack').style.display = 'none';
-            document.getElementById('pinForgot').style.display = 'block';
-        }
-    },
+        // ================= 📱 原有应用逻辑 (封装) =================
+        let items = [];
+        let draftResources = []; 
+        let currentTags = [];
+        let isEditing = false;
+        let editingIndex = -1;
+        let viewingIndex = -1;
+        let galleryIndex = 0;
 
-    checkPin: function() {
-        let val = '';
-        document.querySelectorAll('.pin-input').forEach(p => val += p.value);
-        if(val.length !== 4) return;
+        const TYPES = ['默认', '人物卡', '世界书', 'QR码', '预设', '预设正则', '插件'];
+        const PLACEHOLDER_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23ffe6eb'/%3E%3Ctext x='50' y='50' fill='%23ffb7c5' text-anchor='middle' dy='.3em'%3E无图%3C/text%3E%3C/svg%3E";
+        const DEFAULT_MUSIC = "https://files.catbox.moe/btptsb.mp3";
+        const DB_NAME = 'MyMagicDB';
+        const STORE_NAME = 'items';
+        let db;
 
-        if(!this.tempAuth.pass) { // 设置模式
-            this.tempAuth.type = 'pin';
-            this.tempAuth.pass = val;
-            this.showBox('secBox');
-        } else { // 登录模式
-            if(val === this.tempAuth.pass) this.unlock();
-            else { alert('密码错误'); document.querySelectorAll('.pin-input').forEach(p=>p.value=''); }
-        }
-    },
+        // 页面加载入口
+        window.onload = function() {
+            auth.init(); // 先启动安全系统
+        };
 
-    initGesture: function(isLogin) {
-        const cvs = document.getElementById('gestureCanvas');
-        const ctx = cvs.getContext('2d');
-        let path = [];
-        const pts = [];
-        for(let i=0;i<3;i++) for(let j=0;j<3;j++) pts.push({x:50+j*100, y:50+i*100, i:i*3+j});
-
-        const draw = () => {
-            ctx.clearRect(0,0,300,300);
-            // 线
-            if(path.length) {
-                ctx.beginPath(); ctx.strokeStyle='#ff8fa3'; ctx.lineWidth=5; ctx.lineCap='round';
-                ctx.moveTo(pts[path[0]].x, pts[path[0]].y);
-                for(let idx of path) ctx.lineTo(pts[idx].x, pts[idx].y);
-                ctx.stroke();
-            }
-            // 点
-            pts.forEach(p => {
-                ctx.beginPath(); ctx.fillStyle=path.includes(p.i)?'#ff8fa3':'#ffe6eb';
-                ctx.arc(p.x, p.y, 10, 0, Math.PI*2); ctx.fill();
+        // 只有解锁后才调用此函数
+        function initOriginalApp() {
+            initDB().then(() => {
+                loadFromDB();
+                migrateFromLocalStorage();
             });
-        };
-        draw();
+            initMusic();
+            initDraggable();
+        }
 
-        let drawing = false;
-        const start = e => { e.preventDefault(); drawing=true; path=[]; };
-        const move = e => {
-            if(!drawing) return;
-            e.preventDefault();
-            const rect = cvs.getBoundingClientRect();
-            const x = (e.touches?e.touches[0].clientX:e.clientX) - rect.left;
-            const y = (e.touches?e.touches[0].clientY:e.clientY) - rect.top;
-            pts.forEach(p => {
-                if(!path.includes(p.i) && Math.hypot(p.x-x, p.y-y)<30) { path.push(p.i); draw(); }
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, 1);
+                request.onerror = (e) => { console.error("Database error", e); reject(); };
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+                    }
+                };
+                request.onsuccess = (e) => {
+                    db = e.target.result;
+                    resolve();
+                };
             });
-        };
-        const end = () => {
-            drawing = false;
-            const res = path.join('');
-            if(res.length < 4) { alert('至少连接4个点'); draw(); return; }
-            
-            if(!isLogin) { // 设置
-                this.tempAuth.type = 'gesture';
-                this.tempAuth.pass = res;
-                this.showBox('secBox');
-            } else { // 登录
-                if(res === this.tempAuth.pass) this.unlock();
-                else { alert('图案错误'); path=[]; draw(); }
-            }
-        };
-
-        cvs.ontouchstart = start; cvs.ontouchmove = move; cvs.ontouchend = end;
-        cvs.onmousedown = start; cvs.onmousemove = move; cvs.onmouseup = end;
-    },
-
-    finishSetup: function() {
-        const q = document.getElementById('qInput').value;
-        const a = document.getElementById('aInput').value;
-        if(!q || !a) { alert('请填写安全问题'); return; }
-        
-        const config = { key: 'auth', type: this.tempAuth.type, pass: this.tempAuth.pass, q: q, a: a };
-        const tx = this.db.transaction('config', 'readwrite');
-        tx.objectStore('config').put(config);
-        tx.oncomplete = () => { alert('设置完成！'); this.unlock(); };
-    },
-
-    unlock: function() {
-        document.getElementById('authOverlay').style.display = 'none';
-        document.getElementById('mainContent').style.display = 'block';
-        document.body.classList.add('unlocked');
-    },
-
-    startReset: function() {
-        this.showBox('secBox');
-        document.getElementById('saveSecBtn').style.display = 'none';
-        document.getElementById('verSecBtn').style.display = 'block';
-        document.getElementById('cancelReset').style.display = 'block';
-        document.getElementById('qInput').value = this.tempAuth.q;
-        document.getElementById('qInput').disabled = true;
-    },
-
-    verifyReset: function() {
-        if(document.getElementById('aInput').value === this.tempAuth.a) {
-            alert('验证通过，请重新设置');
-            const tx = this.db.transaction('config', 'readwrite');
-            tx.objectStore('config').delete('auth');
-            location.reload();
-        } else {
-            alert('答案错误');
         }
-    },
 
-    // --- 数据逻辑 ---
-    loadData: function() {
-        const tx = this.db.transaction('data', 'readonly');
-        const req = tx.objectStore('data').getAll();
-        req.onsuccess = e => {
-            this.items = e.target.result;
-            this.render();
-        };
-    },
-
-    render: function() {
-        const grid = document.getElementById('grid');
-        grid.innerHTML = '';
-        if(!this.items.length) { grid.innerHTML = '<div class="empty-state">空的...</div>'; return; }
-        
-        // 倒序
-        [...this.items].reverse().forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'card';
-            div.onclick = () => this.view(item.id);
-            
-            // 找封面
-            const imgs = item.files.filter(f => f.type === 'img');
-            let src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>'; // 空白占位
-            if(imgs.length) src = imgs[item.coverIdx||0]?.content || imgs[0].content;
-
-            div.innerHTML = `
-                <div class="card-img-wrapper"><img src="${src}"></div>
-                <div class="card-content">
-                    <div style="font-weight:bold">${item.name}</div>
-                    <div style="font-size:12px; color:#aaa">${new Date(item.date).toLocaleDateString()}</div>
-                </div>
-            `;
-            grid.appendChild(div);
-        });
-        
-        this.updateNav();
-    },
-
-    updateNav: function() {
-        const nav = document.getElementById('navContent');
-        nav.innerHTML = '';
-        const tags = new Set();
-        this.items.forEach(i => (i.tags||[]).forEach(t => tags.add(t)));
-        tags.forEach(t => {
-            let d = document.createElement('div');
-            d.innerText = '# ' + t;
-            d.style.padding = '5px';
-            d.onclick = () => { 
-                document.getElementById('search').value = t; 
-                this.search();
+        async function loadFromDB() {
+            const tx = db.transaction(STORE_NAME, 'readonly');
+            const store = tx.objectStore(STORE_NAME);
+            const request = store.getAll();
+            request.onsuccess = () => {
+                items = request.result.sort((a, b) => new Date(b.date) - new Date(a.date));
+                renderGrid(items);
+                renderNavPanel();
             };
-            nav.appendChild(d);
-        });
-    },
-
-    // 添加/编辑
-    openAdd: function() {
-        this.currIdx = -1;
-        this.draft = [];
-        document.getElementById('eTitle').innerText = '✨ 添加';
-        document.getElementById('eName').value = '';
-        document.getElementById('eTags').value = '';
-        this.renderDraft();
-        document.getElementById('editor').classList.add('active');
-    },
-
-    addLink: function() {
-        const url = prompt("输入链接:");
-        if(url) {
-            const name = prompt("链接名称:", "网页链接");
-            this.draft.push({type:'link', name:name||'链接', content:url});
-            this.renderDraft();
-        }
-    },
-
-    renderDraft: function() {
-        const div = document.getElementById('eList');
-        div.innerHTML = '';
-        this.draft.forEach((f, i) => {
-            div.innerHTML += `
-                <div class="resource-item">
-                    <span>${f.type==='img'?'🖼️':(f.type==='link'?'🔗':'📄')} ${f.name}</span>
-                    <button onclick="app.draft.splice(${i},1);app.renderDraft()" style="color:red;border:none">×</button>
-                </div>
-            `;
-        });
-    },
-
-    save: function() {
-        const name = document.getElementById('eName').value;
-        if(!name) { alert('写个名字吧'); return; }
-        
-        const item = {
-            id: this.currIdx === -1 ? Date.now() : this.currIdx,
-            name: name,
-            tags: document.getElementById('eTags').value.split(' ').filter(t=>t),
-            files: this.draft,
-            date: new Date().toISOString(),
-            coverIdx: 0
-        };
-
-        const tx = this.db.transaction('data', 'readwrite');
-        tx.objectStore('data').put(item);
-        tx.oncomplete = () => {
-            this.loadData();
-            document.getElementById('editor').classList.remove('active');
-        };
-    },
-
-    // 查看
-    view: function(id) {
-        this.currIdx = id;
-        const item = this.items.find(i => i.id === id);
-        if(!item) return;
-
-        document.getElementById('vName').innerText = item.name;
-        this.imgIdx = item.coverIdx || 0;
-        this.renderView(item);
-        document.getElementById('viewer').classList.add('active');
-    },
-
-    renderView: function(item) {
-        const imgs = item.files.filter(f => f.type === 'img');
-        const imgEl = document.getElementById('vImg');
-        
-        if(imgs.length) {
-            if(this.imgIdx >= imgs.length) this.imgIdx = 0;
-            imgEl.src = imgs[this.imgIdx].content;
-            imgEl.style.display = 'block';
-        } else {
-            imgEl.style.display = 'none';
         }
 
-        const list = document.getElementById('vList');
-        list.innerHTML = '';
-        item.files.forEach(f => {
-            let btn = '';
-            if(f.type === 'link') btn = `<a href="${f.content}" target="_blank" style="color:blue">打开</a>`;
-            else btn = `<button onclick="app.downFile('${f.name}')" style="color:green;border:none">下载</button>`; // 简化下载逻辑，需要配合 downFile 实现
+        async function saveItemToDB(item) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, 'readwrite');
+                const store = tx.objectStore(STORE_NAME);
+                let req;
+                if(item.id) req = store.put(item); 
+                else req = store.add(item); 
+                req.onsuccess = () => { resolve(req.result); };
+                req.onerror = () => { alert('保存失败，可能是文件太大了？'); reject(); };
+            });
+        }
+
+        async function deleteItemFromDB(id) {
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            const store = tx.objectStore(STORE_NAME);
+            store.delete(id);
+            return new Promise(resolve => tx.oncomplete = resolve);
+        }
+
+        function migrateFromLocalStorage() {
+            const oldData = localStorage.getItem('my_magic_collection_v3');
+            if(oldData) {
+                try {
+                    const parsed = JSON.parse(oldData);
+                    if(parsed.length > 0) {
+                        if(confirm('发现旧版本数据，是否迁移到无限空间？(迁移后旧数据会从缓存清空)')) {
+                            const tx = db.transaction(STORE_NAME, 'readwrite');
+                            const store = tx.objectStore(STORE_NAME);
+                            parsed.forEach(item => { delete item.id; store.add(item); });
+                            tx.oncomplete = () => {
+                                alert('迁移成功！享受无限空间吧！✨');
+                                localStorage.removeItem('my_magic_collection_v3');
+                                loadFromDB();
+                            };
+                        }
+                    }
+                } catch(e) {}
+            }
+        }
+
+        function renderGrid(dataList) {
+            const container = document.getElementById('gridContainer');
+            container.innerHTML = '';
+            if (dataList.length === 0) { container.innerHTML = '<div class="empty-state">空空的...快去添加吧！</div>'; return; }
             
-            // 为了简化，这里直接用 dataURI 下载
-            if(f.type !== 'link') {
-               // 临时构建下载闭包
-               btn = `<a href="${f.content}" download="${f.name}" style="color:green;text-decoration:none">下载</a>`; 
+            dataList.forEach((item) => {
+                const realIndex = items.indexOf(item);
+                const card = document.createElement('div'); card.className = 'card';
+                card.onclick = () => openDetailModal(realIndex);
+
+                const images = item.resources.filter(r => r.type === 'image');
+                let coverSrc = PLACEHOLDER_IMG;
+                if (images.length > 0) {
+                    let idx = item.coverIndex || 0;
+                    if (idx >= images.length) idx = 0;
+                    coverSrc = images[idx].content;
+                }
+
+                const imgWrapper = document.createElement('div'); imgWrapper.className = 'card-img-wrapper';
+                const img = document.createElement('img'); img.src = coverSrc;
+                imgWrapper.appendChild(img);
+
+                const indicators = document.createElement('div'); indicators.className = 'content-indicators';
+                const typeCounts = {};
+                item.resources.forEach(r => {
+                    let t = r.subType; if(r.type === 'link') t = '链接';
+                    typeCounts[t] = (typeCounts[t] || 0) + 1;
+                });
+                Object.keys(typeCounts).forEach(k => {
+                    if(k !== '默认') {
+                        const ind = document.createElement('div'); ind.className = 'indicator';
+                        ind.textContent = `${k} ${typeCounts[k]}`; indicators.appendChild(ind);
+                    }
+                });
+                imgWrapper.appendChild(indicators);
+
+                const content = document.createElement('div'); content.className = 'card-content';
+                const title = document.createElement('h3'); title.className = 'card-title'; title.textContent = item.name;
+                content.appendChild(title);
+                const tagsDiv = document.createElement('div'); tagsDiv.className = 'tags-container';
+                (item.tags||[]).forEach(t => {
+                    const span = document.createElement('span'); span.className = 'tag-pill'; span.textContent = t;
+                    tagsDiv.appendChild(span);
+                });
+                content.appendChild(tagsDiv);
+                card.appendChild(imgWrapper); card.appendChild(content); container.appendChild(card);
+            });
+        }
+
+        function resetAddModal() {
+            isEditing = false; editingIndex = -1;
+            document.getElementById('modalTitle').textContent = '✨ 添加新收藏';
+            document.getElementById('itemName').value = '';
+            document.getElementById('tagInput').value = '';
+            document.getElementById('linkInputArea').style.display = 'none';
+            draftResources = []; currentTags = [];
+            renderTagsInput(); renderResourceList(); renderSuggestTags();
+        }
+
+        function openAddModal() { resetAddModal(); document.getElementById('addModal').classList.add('active'); }
+
+        function openEditMode() {
+            if (viewingIndex === -1) return;
+            isEditing = true; editingIndex = viewingIndex;
+            const item = items[editingIndex];
+            document.getElementById('modalTitle').textContent = '✏️ 编辑盒子内容';
+            document.getElementById('itemName').value = item.name;
+            currentTags = [...(item.tags || [])];
+            draftResources = JSON.parse(JSON.stringify(item.resources));
+            renderTagsInput(); renderResourceList(); renderSuggestTags();
+            document.getElementById('detailModal').classList.remove('active'); 
+            document.getElementById('addModal').classList.add('active');       
+        }
+
+        function renderResourceList() {
+            const list = document.getElementById('resourceList'); list.innerHTML = '';
+            if(draftResources.length === 0) { list.innerHTML = '<div style="text-align:center; color:#ccc; font-size:12px; padding:20px;">暂无内容</div>'; return; }
+            draftResources.forEach((res, idx) => {
+                const item = document.createElement('div'); item.className = 'resource-item';
+                let previewHtml = '';
+                if (res.type === 'image') previewHtml = `<img src="${res.content}" style="width:100%;height:100%;object-fit:cover">`;
+                else if (res.type === 'json') previewHtml = '📄';
+                else if (res.type === 'link') previewHtml = '🔗';
+                
+                let selectHtml = '';
+                if (res.type !== 'link') {
+                    selectHtml = `<select class="resource-type-select" onchange="updateResourceType(${idx}, this.value)">`;
+                    TYPES.forEach(t => { selectHtml += `<option value="${t}" ${res.subType === t ? 'selected' : ''}>${t}</option>`; });
+                    selectHtml += `</select>`;
+                } else { selectHtml = `<span style="font-size:11px;color:#aaa">链接</span>`; }
+
+                item.innerHTML = `<div class="resource-preview">${previewHtml}</div><div class="resource-info"><div class="resource-name" title="${res.name}">${res.name}</div>${selectHtml}</div><button class="btn-remove" onclick="removeDraftResource(${idx})">×</button>`;
+                list.appendChild(item);
+            });
+        }
+        function updateResourceType(idx, val) { draftResources[idx].subType = val; }
+        function removeDraftResource(idx) { draftResources.splice(idx, 1); renderResourceList(); }
+        async function handleImageSelect(input) {
+            const files = Array.from(input.files);
+            for(let f of files) { const base64 = await readFile(f); draftResources.push({ type: 'image', subType: '默认', name: f.name, content: base64 }); }
+            renderResourceList(); input.value = '';
+        }
+        async function handleJsonSelect(input) {
+            const files = Array.from(input.files);
+            for(let f of files) { const text = await readFileText(f); draftResources.push({ type: 'json', subType: '默认', name: f.name, content: text }); }
+            renderResourceList(); input.value = '';
+        }
+        function openLinkInput() { document.getElementById('linkInputArea').style.display = 'block'; }
+        function confirmAddLink() {
+            const name = document.getElementById('newLinkName').value.trim(); const url = document.getElementById('newLinkUrl').value.trim();
+            if(name && url) {
+                draftResources.push({ type: 'link', subType: 'link', name: name, content: url });
+                renderResourceList();
+                document.getElementById('newLinkName').value = ''; document.getElementById('newLinkUrl').value = ''; document.getElementById('linkInputArea').style.display = 'none';
+            } else { alert('请输入名称和网址'); }
+        }
+
+        async function saveItem() {
+            const name = document.getElementById('itemName').value.trim();
+            if (!name) { alert('名字不能为空'); return; }
+            if (draftResources.length === 0) { alert('盒子不能为空哦'); return; }
+            
+            const itemData = { 
+                name: name, 
+                tags: [...currentTags], 
+                resources: draftResources, 
+                coverIndex: 0, 
+                date: new Date().toISOString() 
+            };
+
+            if (isEditing) {
+                const oldItem = items[editingIndex];
+                itemData.id = oldItem.id;
+                itemData.coverIndex = oldItem.coverIndex;
             }
 
-            list.innerHTML += `
-                <div class="resource-item">
-                    <span>${f.name}</span>
-                    ${btn}
-                </div>
-            `;
-        });
-    },
+            await saveItemToDB(itemData);
+            loadFromDB(); handleSearch(); closeAddModal();
+        }
 
-    nextImg: function() {
-        const item = this.items.find(i => i.id === this.currIdx);
-        const len = item.files.filter(f=>f.type==='img').length;
-        if(len) { this.imgIdx = (this.imgIdx+1)%len; this.renderView(item); }
-    },
-    prevImg: function() {
-        const item = this.items.find(i => i.id === this.currIdx);
-        const len = item.files.filter(f=>f.type==='img').length;
-        if(len) { this.imgIdx = (this.imgIdx-1+len)%len; this.renderView(item); }
-    },
-    setCover: function() {
-        const item = this.items.find(i => i.id === this.currIdx);
-        item.coverIdx = this.imgIdx;
-        const tx = this.db.transaction('data', 'readwrite');
-        tx.objectStore('data').put(item);
-        tx.oncomplete = () => { alert('封面已更新'); this.loadData(); };
-    },
-    downImg: function() {
-        const item = this.items.find(i => i.id === this.currIdx);
-        const imgs = item.files.filter(f => f.type === 'img');
-        if(imgs.length) {
+        function openDetailModal(index) {
+            viewingIndex = index; const item = items[index];
+            document.getElementById('detailName').textContent = item.name;
+            const tagsBox = document.getElementById('detailTags'); tagsBox.innerHTML = '';
+            (item.tags||[]).forEach(t => { const s = document.createElement('span'); s.className='tag-pill'; s.textContent=t; tagsBox.appendChild(s); });
+
+            const images = item.resources.filter(r => r.type === 'image');
+            if(images.length === 0) { document.getElementById('galleryArea').style.display = 'none'; document.getElementById('noImgMsg').style.display = 'block'; }
+            else {
+                document.getElementById('galleryArea').style.display = 'block'; document.getElementById('noImgMsg').style.display = 'none';
+                galleryIndex = item.coverIndex || 0;
+                if(galleryIndex >= images.length) galleryIndex = 0;
+                updateGalleryUI(images);
+            }
+
+            const listContainer = document.getElementById('detailListContainer'); listContainer.innerHTML = '';
+            item.resources.forEach((res, i) => {
+                const row = document.createElement('div'); row.className = 'detail-item';
+                let icon = '📄', actionBtn = '', typeLabel = res.subType;
+                
+                if (res.type === 'image') { icon = '🖼️'; actionBtn = `<span class="action-link" onclick="downloadResource(${i})">下载</span>`; } 
+                else if (res.type === 'json') { icon = '📄'; actionBtn = `<span class="action-link" onclick="downloadResource(${i})">下载</span>`; }
+                else if (res.type === 'link') { icon = '🔗'; typeLabel = '链接'; actionBtn = `<a class="action-link" href="${res.content}" target="_blank">打开</a>`; }
+                
+                row.innerHTML = `<div style="display:flex;align-items:center;min-width:0;"><span class="detail-item-type">${typeLabel}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${icon} ${res.name}</span></div><div style="flex-shrink:0;margin-left:10px;">${actionBtn}</div>`;
+                listContainer.appendChild(row);
+            });
+            document.getElementById('detailModal').classList.add('active');
+        }
+
+        function updateGalleryUI(images) {
+            const imgEl = document.getElementById('detailImg'); const typeLabel = document.getElementById('galleryTypeLabel');
+            const curImg = images[galleryIndex]; imgEl.src = curImg.content; typeLabel.textContent = curImg.subType;
+            document.getElementById('imgIndex').textContent = galleryIndex + 1; document.getElementById('imgTotal').textContent = images.length;
+            const coverBtn = document.getElementById('setCoverBtn');
+            if(galleryIndex === (items[viewingIndex].coverIndex || 0)) { coverBtn.textContent = '当前封面'; coverBtn.classList.add('is-cover'); }
+            else { coverBtn.textContent = '设为封面'; coverBtn.classList.remove('is-cover'); }
+        }
+        function changeGalleryImage(d) {
+            const images = items[viewingIndex].resources.filter(r => r.type === 'image'); if(images.length === 0) return;
+            galleryIndex += d; if(galleryIndex >= images.length) galleryIndex = 0; if(galleryIndex < 0) galleryIndex = images.length - 1;
+            updateGalleryUI(images);
+        }
+        async function setAsCover() {
+            if(viewingIndex === -1) return; 
+            const item = items[viewingIndex];
+            item.coverIndex = galleryIndex;
+            await saveItemToDB(item); 
+            const images = item.resources.filter(r => r.type === 'image'); 
+            updateGalleryUI(images); loadFromDB(); 
+        }
+        function downloadCurrentGalleryImg() {
+            const images = items[viewingIndex].resources.filter(r => r.type === 'image'); if(images.length === 0) return;
+            const cur = images[galleryIndex]; downloadFile(cur.name, cur.content);
+        }
+        function downloadResource(resIndex) {
+            const res = items[viewingIndex].resources[resIndex]; if(res.type === 'link') return; downloadFile(res.name, res.content);
+        }
+
+        function downloadFile(name, content) {
             const a = document.createElement('a');
-            a.href = imgs[this.imgIdx].content;
-            a.download = imgs[this.imgIdx].name;
+            if (content.startsWith('data:')) {
+                a.href = content;
+            } else {
+                const blob = new Blob([content], {type: 'application/json'});
+                a.href = URL.createObjectURL(blob);
+            }
+            a.download = name;
             document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            if (!content.startsWith('data:')) URL.revokeObjectURL(a.href);
         }
-    },
 
-    edit: function() {
-        const item = this.items.find(i => i.id === this.currIdx);
-        this.draft = JSON.parse(JSON.stringify(item.files));
-        document.getElementById('eTitle').innerText = '✏️ 编辑';
-        document.getElementById('eName').value = item.name;
-        document.getElementById('eTags').value = item.tags.join(' ');
-        this.renderDraft();
-        document.getElementById('viewer').classList.remove('active');
-        document.getElementById('editor').classList.add('active');
-    },
-
-    del: function() {
-        if(confirm('确定删除吗？')) {
-            const tx = this.db.transaction('data', 'readwrite');
-            tx.objectStore('data').delete(this.currIdx);
-            tx.oncomplete = () => {
-                this.loadData();
-                document.getElementById('viewer').classList.remove('active');
-            };
+        function readFile(file) { return new Promise(resolve => { const r = new FileReader(); r.onload = e => resolve(e.target.result); r.readAsDataURL(file); }); }
+        function readFileText(file) { return new Promise(resolve => { const r = new FileReader(); r.onload = e => resolve(e.target.result); r.readAsText(file); }); }
+        
+        function handleTagInput(e) { if(e.key==='Enter'){ e.preventDefault(); const v=e.target.value.trim(); if(v && !currentTags.includes(v)) { currentTags.push(v); e.target.value=''; renderTagsInput(); } } if(e.key==='Backspace' && !e.target.value) { currentTags.pop(); renderTagsInput(); } }
+        function renderTagsInput() { const area=document.getElementById('tagInputArea'); const inp=document.getElementById('tagInput'); Array.from(area.children).forEach(c=>c!==inp && area.removeChild(c)); currentTags.forEach((t,i)=>{ const d=document.createElement('div'); d.className='tag-chip'; d.innerHTML=`${t} <span onclick="currentTags.splice(${i},1);renderTagsInput()" style="cursor:pointer">×</span>`; area.insertBefore(d,inp); }); }
+        function renderSuggestTags() { const all=new Set(); items.forEach(i=>(i.tags||[]).forEach(t=>all.add(t))); const box=document.getElementById('suggestedTags'); box.innerHTML=''; all.forEach(t=>{ const d=document.createElement('div'); d.className='tag-chip'; d.style.background='#f0f0f0'; d.style.color='#666'; d.style.cursor='pointer'; d.textContent=t; d.onclick=()=>{if(!currentTags.includes(t)){currentTags.push(t);renderTagsInput();}}; box.appendChild(d); }); }
+        function handleSearch(){ const q=document.getElementById('searchInput').value.toLowerCase(); const f=items.filter(i=>i.name.toLowerCase().includes(q)||(i.tags||[]).some(t=>t.toLowerCase().includes(q))); renderGrid(f); }
+        function closeAddModal() { document.getElementById('addModal').classList.remove('active'); }
+        function closeDetailModal() { document.getElementById('detailModal').classList.remove('active'); viewingIndex=-1; }
+        
+        async function deleteCurrentItem() { 
+            if(confirm('确定删除吗？')) { 
+                const id = items[viewingIndex].id;
+                await deleteItemFromDB(id);
+                loadFromDB(); closeDetailModal(); 
+            } 
         }
-    },
 
-    search: function() {
-        const val = document.getElementById('search').value.toLowerCase();
-        const filtered = this.items.filter(i => i.name.toLowerCase().includes(val) || i.tags.some(t=>t.toLowerCase().includes(val)));
-        // 渲染过滤后的列表... (简单起见重新渲染 items，实际应该分离)
-        // 这里偷懒直接操作 DOM
-        const grid = document.getElementById('grid');
-        grid.innerHTML = '';
-        [...filtered].reverse().forEach(item => {
-             // ... 重复 render 逻辑 ...
-             const div = document.createElement('div');
-            div.className = 'card';
-            div.onclick = () => this.view(item.id);
-            const imgs = item.files.filter(f => f.type === 'img');
-            let src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>';
-            if(imgs.length) src = imgs[item.coverIdx||0]?.content || imgs[0].content;
-            div.innerHTML = `<div class="card-img-wrapper"><img src="${src}"></div><div class="card-content"><div style="font-weight:bold">${item.name}</div></div>`;
-            grid.appendChild(div);
-        });
-    },
+        function exportAllData() { 
+            const tx = db.transaction(STORE_NAME, 'readonly');
+            const store = tx.objectStore(STORE_NAME);
+            const req = store.getAll();
+            req.onsuccess = () => {
+                const blob = new Blob([JSON.stringify(req.result)], {type:'application/json'}); 
+                const a = document.createElement('a'); 
+                a.href = URL.createObjectURL(blob); 
+                a.download = `备份_${new Date().toISOString().slice(0,10)}.json`; 
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            }
+        }
+        
+        function importAllData(el) { 
+            const file = el.files[0]; if(!file) return; 
+            const r = new FileReader(); 
+            r.onload = e => { 
+                try { 
+                    const imported = JSON.parse(e.target.result); 
+                    if(Array.isArray(imported)) {
+                        const tx = db.transaction(STORE_NAME, 'readwrite');
+                        const store = tx.objectStore(STORE_NAME);
+                        imported.forEach(item => { delete item.id; store.add(item); }); 
+                        tx.oncomplete = () => { loadFromDB(); alert('导入成功！'); };
+                    }
+                } catch{ alert('文件格式错误'); } 
+            }; 
+            r.readAsText(file); 
+        }
+        
+        function initMusic() { const link = localStorage.getItem('my_bgm_link') || DEFAULT_MUSIC; const audio = document.getElementById('bgMusic'); audio.src = link; audio.volume = 0.5; document.getElementById('musicLink').value = link; }
+        function toggleMusic() { const a=document.getElementById('bgMusic'); const b=document.getElementById('playBtn'); if(a.paused){a.play();b.textContent='⏸';}else{a.pause();b.textContent='▶';} }
+        function changeVolume(s) { document.getElementById('bgMusic').volume=s.value; }
+        function updateMusicSrc(v) { if(v){document.getElementById('bgMusic').src=v; localStorage.setItem('my_bgm_link',v); document.getElementById('playBtn').textContent='▶';} }
+        function renderNavPanel() { const c = document.getElementById('navPanel'); const t = c.querySelector('.nav-title'); c.innerHTML=''; c.appendChild(t); const map={}; const no=[]; items.forEach((it,i)=>{ if(!it.tags||it.tags.length==0)no.push(i); else it.tags.forEach(tag=>{ if(!map[tag])map[tag]=[]; map[tag].push(i); }); }); if(no.length) createNavGroup(c,'📂 未分类',no); Object.keys(map).sort().forEach(k=>createNavGroup(c,`🏷️ ${k}`,map[k])); }
+        function createNavGroup(c,t,idx) { const g=document.createElement('div'); g.style.marginBottom='5px'; const h=document.createElement('div'); h.innerHTML=`${t} ▾`; h.style.cssText='padding:5px;font-size:12px;font-weight:bold;cursor:pointer;color:#555;'; h.onclick=()=>{l.style.display=l.style.display==='none'?'block':'none'}; const l=document.createElement('div'); l.style.cssText='display:none;padding-left:10px;'; idx.forEach(i=>{ const it=document.createElement('div'); it.textContent=items[i].name; it.style.cssText='font-size:11px;padding:3px;cursor:pointer;color:#888;'; it.onclick=()=>{openDetailModal(i);document.getElementById('floatMenu').classList.remove('active')}; l.appendChild(it); }); g.appendChild(h); g.appendChild(l); c.appendChild(g); }
 
-    // 辅助
-    readFile: function(file) {
-        return new Promise(resolve => {
-            const reader = new FileReader();
-            reader.onload = e => resolve(e.target.result);
-            reader.readAsDataURL(file);
-        });
-    },
-    readText: function(file) {
-        return new Promise(resolve => {
-            const reader = new FileReader();
-            reader.onload = e => resolve(e.target.result);
-            reader.readAsText(file);
-        });
-    },
-    export: function() {
-        const blob = new Blob([JSON.stringify(this.items)], {type:'application/json'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `backup_${Date.now()}.json`;
-        document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    },
-    import: function(el) {
-        const f = el.files[0];
-        if(!f) return;
-        const reader = new FileReader();
-        reader.onload = e => {
-            try {
-                const data = JSON.parse(e.target.result);
-                const tx = this.db.transaction('data', 'readwrite');
-                data.forEach(d => tx.objectStore('data').put(d)); // 使用 put 覆盖或新增
-                tx.oncomplete = () => { alert('导入成功'); this.loadData(); };
-            } catch(err) { alert('文件坏了'); }
-        };
-        reader.readAsText(f);
-        el.value = '';
-    }
-};
-
-app.init();
-</script>
+        function initDraggable() {
+            const w=document.getElementById('floatWidget'), b=document.getElementById('floatBtn'), m=document.getElementById('floatMenu');
+            let isDragging=false, startX, startY, initialLeft, initialTop;
+            b.addEventListener('mousedown', s); b.addEventListener('touchstart', s, {passive:false});
+            function s(e) { 
+                if(e.target.closest('.float-menu'))return; isDragging=false; 
+                const c=e.type.includes('mouse')?e:e.touches[0]; startX=c.clientX; startY=c.clientY; 
+                const r=w.getBoundingClientRect(); initialLeft=r.left; initialTop=r.top;
+                w.style.left=initialLeft+'px'; w.style.top=initialTop+'px'; w.style.bottom='auto'; w.style.right='auto';
+                if(e.type.includes('mouse')) { document.addEventListener('mousemove', mv); document.addEventListener('mouseup', ed); } else { document.addEventListener('touchmove', mv, {passive:false}); document.addEventListener('touchend', ed); }
+            }
+            function mv(e) { 
+                const c=e.type.includes('mouse')?e:e.touches[0]; const dx=c.clientX-startX, dy=c.clientY-startY; 
+                if(Math.abs(dx)>5||Math.abs(dy)>5){ isDragging=true; if(m.classList.contains('active'))m.classList.remove('active'); }
+                if(isDragging){ e.preventDefault(); w.style.left=(initialLeft+dx)+'px'; w.style.top=(initialTop+dy)+'px'; }
+            }
+            function ed() { document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',ed); document.removeEventListener('touchmove',mv); document.removeEventListener('touchend',ed); }
+            b.addEventListener('click', (e)=>{ if(isDragging){e.preventDefault();e.stopPropagation();}else{m.classList.toggle('active');} });
+            document.addEventListener('click', (e)=>{ if(m.classList.contains('active')&&!w.contains(e.target)){m.classList.remove('active');} });
+        }
+    </script>
 </body>
 </html>
