@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>✨ 梨梨的百宝箱 (UI最终重制版) ✨</title>
+    <title>✨ 梨梨的百宝箱 (最终完美版) ✨</title>
     <style>
         /* --- 引入定制字体 --- */
         @font-face {
@@ -230,26 +230,25 @@
         .search-input:focus { border-color: var(--primary-color); }
         .search-icon { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); color: var(--primary-color); }
 
-             /* 🟢 视图切换栏 (修改版：增加标题和精致感) */
+        /* 🟢 视图切换栏 (最终版) */
         .layout-bar {
             display: flex; 
-            align-items: center; /* 垂直居中对齐 */
+            align-items: center; 
             justify-content: center;
-            gap: 4px; /* 缩小按钮间距 */
+            gap: 4px;
             margin: 0 auto 25px auto;
-            background: rgba(255, 255, 255, 0.85); /* 背景稍微不那么透明 */
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(5px);
-            padding: 6px 12px 6px 15px; /* 调整内边距，左侧给文字留空 */
+            padding: 6px 12px 6px 15px;
             border-radius: 50px;
             width: fit-content;
-            border: 2px solid #fff0f5; /* 边框改成浅粉色 */
-            box-shadow: 0 5px 15px rgba(255, 183, 197, 0.25); /* 阴影稍微加深一点 */
+            border: 2px solid #fff0f5;
+            box-shadow: 0 5px 15px rgba(255, 183, 197, 0.25);
         }
 
-        /* 新增：视图栏标题样式 */
         .layout-label {
             font-size: 13px;
-            color: var(--accent-color); /* 使用主题强调色 */
+            color: var(--accent-color);
             font-weight: bold;
             margin-right: 8px;
             display: flex;
@@ -258,68 +257,104 @@
 
         .layout-btn {
             background: none; border: none; 
-            width: 36px; height: 36px; /* 稍微缩小按钮尺寸 (原40px) */
-            cursor: pointer; 
-            border-radius: 50%; transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-            display: flex; align-items: center; justify-content: center;
-            opacity: 0.6; /* 未选中状态稍微透明点 */
-        }
-        /* SVG 图标样式 */
-               .layout-btn {
-            background: none; border: none; 
-            width: 36px; height: 36px; 
+            width: 36px; height: 36px;
             cursor: pointer; 
             border-radius: 50%; transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
             display: flex; align-items: center; justify-content: center;
             opacity: 0.6;
-            font-size: 18px; /* ✨ 新增：设置 Emoji 图标的大小 */
+            font-size: 18px;
         }
-        /* 删除原来的 .layout-icon 样式块，因为不再使用 SVG 了 */
+        .layout-btn.active {
+            background: #fff;
+            box-shadow: 0 4px 10px rgba(255, 183, 197, 0.3);
+            opacity: 1;
+            transform: scale(1.1);
+        }
 
-
-               /* 🟢 操作按钮网格 (修改版：一行 + Hello Kitty风格) */
+        /* 🟢 操作按钮网格 (最终版：5列 + Hello Kitty) */
         .action-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr); /* 核心修改：改为4列，即一行显示 */
-            gap: 10px; /* 间距缩小，防止挤出屏幕 */
-            max-width: 95%; /* 宽度占满一点 */
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            max-width: 98%;
             margin: 0 auto 20px auto;
         }
         
         .action-card {
-            background: #fff; /* Hello Kitty 的经典白色背景 */
-            border: 2px solid #ffb7c5; /* 粉色边框 */
+            background: #fff;
+            border: 2px solid #ffb7c5;
             border-radius: 20px;
-            padding: 10px 2px; /* 减小内边距，适应小按钮 */
+            padding: 10px 2px;
             display: flex; 
             flex-direction: column; 
             align-items: center; 
             justify-content: center;
             cursor: pointer;
             transition: all 0.2s;
-            color: #ff8fa3; /* 文字颜色 */
+            color: #ff8fa3;
             font-weight: bold;
-            font-size: 12px; /* 字体改小，防止换行 */
+            font-size: 12px;
             box-shadow: 0 4px 10px rgba(255, 183, 197, 0.2);
-            height: 70px; /* 固定高度，整齐划一 */
+            height: 70px;
         }
         
         .action-card:active { transform: scale(0.95); }
 
-        /* 专门给第一个按钮去掉原来的深色背景，统一成 Hello Kitty 风格 */
         .action-card.primary {
             background: #fff;
-            border: 2px solid #ff8fa3; /*稍微深一点的粉色突出它是主要的*/
+            border: 2px solid #ff8fa3;
             color: #ff8fa3;
             box-shadow: 0 4px 12px rgba(255, 143, 163, 0.3);
         }
 
-        /* 🎀 Hello Kitty 图标样式 */
         .kitty-icon {
-            font-size: 24px; /* 图标大小 */
+            font-size: 24px;
             margin-bottom: 2px;
             filter: drop-shadow(0 2px 2px rgba(255,183,197,0.3));
         }
+
+        /* 批量删除相关样式 */
+        .card.is-selecting { animation: shake 0.3s ease; }
+        .card.selected {
+            border-color: #ff6b6b !important;
+            background-color: #fff0f0;
+            position: relative;
+        }
+        .card.selected::after {
+            content: '✅';
+            position: absolute; top: 5px; right: 5px;
+            font-size: 20px; background: rgba(255,255,255,0.8); border-radius: 50%;
+        }
+
+        /* 🔴 关键修复：隐藏删除条 */
+        .delete-bar {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            /* 推到底部看不见的地方，且透明 */
+            transform: translateX(-50%) translateY(200px); 
+            opacity: 0; 
+            pointer-events: none;
+            
+            background: #fff;
+            padding: 10px 20px;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            gap: 15px;
+            z-index: 10000;
+            transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            border: 2px solid #ff6b6b;
+        }
+        .delete-bar.active { 
+            /* 激活时归位显示 */
+            transform: translateX(-50%) translateY(0); 
+            opacity: 1; 
+            pointer-events: auto;
+        }
+        
+        .delete-btn-confirm { background: #ff6b6b; color: white; border: none; padding: 8px 20px; border-radius: 30px; font-weight: bold; }
+        .delete-btn-cancel { background: #f0f0f0; color: #666; border: none; padding: 8px 20px; border-radius: 30px; }
         
         /* 隐藏原有的 controls */
         .controls { display: none; }
@@ -548,23 +583,29 @@
             <span class="search-icon">🔍</span>
         </div>
 
-                       <div class="layout-bar">
+        <div class="layout-bar">
             <span class="layout-label">👀 视图:</span>
-            
             <button class="layout-btn" title="默认网格" onclick="switchLayout('default')">🩶</button>
             <button class="layout-btn" title="长列表" onclick="switchLayout('list')">🩵</button>
             <button class="layout-btn" title="大图模式" onclick="switchLayout('large')">🤍</button>
             <button class="layout-btn" title="迷你模式" onclick="switchLayout('mini')">🩷</button>
         </div>
 
-              <div class="action-grid">
+        <div class="action-grid">
             <div class="action-card primary" onclick="openAddModal()">
-                <div class="kitty-icon">🎀</div> <div>添加</div>
+                <div class="kitty-icon">🎀</div>
+                <div>添加</div>
             </div>
             
             <div class="action-card" onclick="document.getElementById('batchImgInput').click()">
-                <div class="kitty-icon">📸</div> <div>批量</div>
-                <input type="file" id="batchImgInput" accept="image/*" multiple style="display:none" onchange="handleBatchImageImport(this)">
+                <div class="kitty-icon">📸</div>
+                <div>批量加</div>
+                <input type="file" id="batchImgInput" multiple style="display:none" onchange="handleBatchImageImport(this)">
+            </div>
+
+            <div class="action-card" onclick="toggleBatchDeleteMode()">
+                <div class="kitty-icon">🧹</div>
+                <div>批量删</div>
             </div>
 
             <div class="action-card" onclick="exportAllData()">
@@ -573,7 +614,8 @@
             </div>
 
             <div class="action-card" onclick="document.getElementById('importAllInput').click()">
-                <div class="kitty-icon">👜</div> <div>导入</div>
+                <div class="kitty-icon">👜</div>
+                <div>导入</div>
                 <input type="file" id="importAllInput" accept=".json" onchange="importAllData(this)">
             </div>
         </div>
@@ -604,6 +646,11 @@
             <div class="form-group"><label>📂 盒子内容</label><div id="detailListContainer" class="detail-list"></div></div>
             <div class="modal-buttons" style="justify-content: center; flex-wrap:wrap;"><button class="edit-btn" onclick="openEditMode()">✏️ 编辑盒子内容</button><button onclick="deleteCurrentItem()" style="border-color: #ffcccc; color: #ff6b6b;">🗑️ 删除盒子</button></div>
         </div>
+    </div>
+
+    <div id="deleteBar" class="delete-bar">
+        <button class="delete-btn-cancel" onclick="toggleBatchDeleteMode()">取消</button>
+        <button class="delete-btn-confirm" onclick="confirmBatchDelete()">🗑️ 删除 (<span id="deleteCount">0</span>)</button>
     </div>
 
     <script>
@@ -761,24 +808,73 @@
         function migrateFromLocalStorage() { const old = localStorage.getItem('my_magic_collection_v3'); if(old) { try { const p = JSON.parse(old); if(p.length > 0 && confirm('发现旧数据，迁移吗？')) { const tx = db.transaction(STORE_NAME, 'readwrite'); p.forEach(i => { delete i.id; tx.objectStore(STORE_NAME).add(i); }); tx.oncomplete = () => { alert('迁移成功！'); localStorage.removeItem('my_magic_collection_v3'); loadFromDB(); }; } } catch(e){} } }
 
         function renderGrid(dataList) {
-            const container = document.getElementById('gridContainer'); container.innerHTML = '';
-            if (dataList.length === 0) { container.innerHTML = '<div class="empty-state">空空的...快去添加吧！</div>'; return; }
+            const container = document.getElementById('gridContainer'); 
+            container.innerHTML = '';
+            
+            if (dataList.length === 0) { 
+                container.innerHTML = '<div class="empty-state">空空的...快去添加吧！</div>'; 
+                return; 
+            }
+
             dataList.forEach((item) => {
                 const realIndex = items.indexOf(item);
-                const card = document.createElement('div'); card.className = 'card'; card.onclick = () => openDetailModal(realIndex);
+                const card = document.createElement('div'); 
+                
+                card.className = 'card';
+                if (isBatchDeleteMode) {
+                    card.classList.add('is-selecting');
+                    if (selectedDeleteIds.has(item.id)) {
+                        card.classList.add('selected');
+                    }
+                    card.onclick = () => {
+                        if (selectedDeleteIds.has(item.id)) {
+                            selectedDeleteIds.delete(item.id);
+                        } else {
+                            selectedDeleteIds.add(item.id);
+                        }
+                        renderGrid(dataList); 
+                        updateDeleteBar();
+                    };
+                } else {
+                    card.onclick = () => openDetailModal(realIndex);
+                }
+
                 const images = item.resources.filter(r => r.type === 'image');
-                let coverSrc = PLACEHOLDER_IMG; if (images.length > 0) coverSrc = images[Math.min(item.coverIndex||0, images.length-1)].content;
-                const imgWrapper = document.createElement('div'); imgWrapper.className = 'card-img-wrapper'; const img = document.createElement('img'); img.src = coverSrc; imgWrapper.appendChild(img);
-                const content = document.createElement('div'); content.className = 'card-content';
-                const title = document.createElement('h3'); title.className = 'card-title'; title.textContent = item.name;
-                content.appendChild(title); const tagsDiv = document.createElement('div'); tagsDiv.className = 'tags-container'; (item.tags||[]).forEach(t => { const span = document.createElement('span'); span.className = 'tag-pill'; span.textContent = t; tagsDiv.appendChild(span); }); content.appendChild(tagsDiv);
-                card.appendChild(imgWrapper); card.appendChild(content); container.appendChild(card);
+                let coverSrc = PLACEHOLDER_IMG; 
+                if (images.length > 0) coverSrc = images[Math.min(item.coverIndex||0, images.length-1)].content;
+                
+                const imgWrapper = document.createElement('div'); 
+                imgWrapper.className = 'card-img-wrapper'; 
+                const img = document.createElement('img'); 
+                img.src = coverSrc; 
+                imgWrapper.appendChild(img);
+                
+                const content = document.createElement('div'); 
+                content.className = 'card-content';
+                const title = document.createElement('h3'); 
+                title.className = 'card-title'; 
+                title.textContent = item.name;
+                content.appendChild(title); 
+                
+                const tagsDiv = document.createElement('div'); 
+                tagsDiv.className = 'tags-container'; 
+                (item.tags||[]).forEach(t => { 
+                    const span = document.createElement('span'); 
+                    span.className = 'tag-pill'; 
+                    span.textContent = t; 
+                    tagsDiv.appendChild(span); 
+                }); 
+                content.appendChild(tagsDiv);
+                
+                card.appendChild(imgWrapper); 
+                card.appendChild(content); 
+                container.appendChild(card);
             });
         }
 
         function switchLayout(mode) {
             const c = document.getElementById('gridContainer');
-            c.className = 'grid-container'; // reset
+            c.className = 'grid-container'; 
             c.classList.add('mode-' + mode);
             
             document.querySelectorAll('.layout-btn').forEach(btn => btn.classList.remove('active'));
@@ -817,21 +913,104 @@
         function closeLottery() { document.getElementById('lotteryOverlay').classList.remove('active'); }
         function goToLotteryItem() { closeLottery(); if(currentLuckyIndex !== -1) setTimeout(() => openDetailModal(currentLuckyIndex), 300); }
 
-        // --- 批量逻辑 ---
+        // --- 🟢 增强版：全能批量导入 ---
         async function handleBatchImageImport(input) {
             const files = Array.from(input.files);
             if (files.length === 0) return;
-            auth.toast(`正在全力导入 ${files.length} 张图片，稍等哦...`);
+            
+            auth.toast(`正在搬运 ${files.length} 个文件，请稍等... 🚚`);
             let count = 0;
+
             for (let f of files) {
-                const base64 = await readFile(f);
-                const name = f.name.replace(/\.[^/.]+$/, ""); 
-                const newItem = { name: name, tags: ['待整理'], resources: [{ type: 'image', subType: '默认', name: f.name, content: base64 }], coverIndex: 0, date: new Date().toISOString() };
-                try { await saveItemToDB(newItem); count++; } catch(e) { console.error(e); }
+                const name = f.name; 
+                let resourceType = 'file'; 
+                let subType = '附件';
+                let content = null;
+
+                if (f.type.startsWith('image/')) {
+                    resourceType = 'image';
+                    subType = '默认';
+                    content = await readFile(f); 
+                } else if (f.name.endsWith('.json')) {
+                    resourceType = 'json';
+                    subType = '数据';
+                    content = await readFileText(f);
+                } else {
+                    resourceType = 'file';
+                    subType = '附件';
+                    content = await readFile(f); 
+                }
+
+                const newItem = { 
+                    name: name, 
+                    tags: ['批量导入'], 
+                    resources: [{ 
+                        type: resourceType, 
+                        subType: subType, 
+                        name: name, 
+                        content: content 
+                    }], 
+                    coverIndex: 0, 
+                    date: new Date().toISOString() 
+                };
+
+                try { 
+                    await saveItemToDB(newItem); 
+                    count++; 
+                } catch(e) { 
+                    console.error("文件太大或保存失败:", e); 
+                    auth.toast(`❌ ${name} 太大了，存不下！`);
+                }
             }
+            
             loadFromDB();
-            auth.toast(`太棒了！成功生成了 ${count} 个新盒子！✨`);
-            input.value = '';
+            auth.toast(`搞定！成功存入了 ${count} 个宝贝！✨`);
+            input.value = ''; 
+        }
+
+        // ================= 🧹 批量删除逻辑 =================
+
+        let isBatchDeleteMode = false; 
+        let selectedDeleteIds = new Set(); 
+
+        function toggleBatchDeleteMode() {
+            isBatchDeleteMode = !isBatchDeleteMode;
+            selectedDeleteIds.clear(); 
+            updateDeleteBar();
+            handleSearch(); 
+            
+            if(isBatchDeleteMode) {
+                auth.toast('进入删除模式：请点选要删除的盒子 🗑️');
+            }
+        }
+
+        function updateDeleteBar() {
+            const bar = document.getElementById('deleteBar');
+            const countSpan = document.getElementById('deleteCount');
+            
+            if (isBatchDeleteMode) {
+                bar.classList.add('active');
+                countSpan.textContent = selectedDeleteIds.size;
+            } else {
+                bar.classList.remove('active');
+            }
+        }
+
+        async function confirmBatchDelete() {
+            if (selectedDeleteIds.size === 0) {
+                auth.toast('还没选任何东西呢~');
+                return;
+            }
+            
+            if (!confirm(`确定要删除选中的 ${selectedDeleteIds.size} 个盒子吗？无法恢复哦！`)) return;
+
+            for (let id of selectedDeleteIds) {
+                await deleteItemFromDB(id);
+            }
+
+            toggleBatchDeleteMode(); 
+            loadFromDB(); 
+            auth.toast('清理完毕！变得清爽多啦 ✨');
         }
 
         // --- CRUD & UI Helpers ---
