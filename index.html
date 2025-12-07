@@ -617,6 +617,111 @@
             position: relative;
             z-index: 2; /* 确保内容在文字上面 */
         }
+
+        /* ==================== 💮 心情印章系统 ==================== */
+        
+        /* 印章选择栏 */
+        .stamp-bar {
+            display: flex; justify-content: center; gap: 15px; margin: 10px 0 20px 0;
+            padding: 10px; background: rgba(255, 255, 255, 0.6); border-radius: 50px;
+        }
+        
+        .stamp-btn {
+            width: 40px; height: 40px; border-radius: 50%; border: 2px solid transparent;
+            background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 22px; transition: all 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); opacity: 0.7; filter: grayscale(0.8);
+        }
+        
+        .stamp-btn:hover { transform: translateY(-3px); }
+        
+        /* 激活状态：变成彩色，发光 */
+        .stamp-btn.active {
+            border-color: var(--accent-color); opacity: 1; filter: grayscale(0);
+            transform: scale(1.1); box-shadow: 0 5px 15px rgba(255, 143, 163, 0.3);
+        }
+
+        /* 盖在右上角的大印章 */
+        .big-stamp-mark {
+            position: absolute;
+            top: 20px; right: 20px;
+            font-size: 100px;
+            opacity: 0;
+            pointer-events: none; /* 让鼠标穿透，不挡操作 */
+            transform: scale(3) rotate(-30deg); /* 初始状态：很大，悬空 */
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* 弹性动画 */
+            z-index: 0; /* 放在底层，背景字之上，内容之下 */
+            filter: drop-shadow(0 0 0 transparent); /* 初始无阴影 */
+        }
+
+        /* 盖下去的状态 */
+        .big-stamp-mark.stamped {
+            opacity: 0.15; /* 淡淡的印记 */
+            transform: scale(1) rotate(-20deg); /* 砸下来 */
+            filter: drop-shadow(2px 2px 0px rgba(255, 100, 100, 0.2));
+        }
+
+        /* ==================== 🙈 防窥模式 (Privacy Blur) ==================== */
+        
+        /* 1. 当 body 加上 privacy-active 类时，模糊所有图片 */
+        body.privacy-active .card img,       /* 首页卡片封面 */
+        body.privacy-active .gallery-img,    /* 详情页大图 */
+        body.privacy-active .resource-preview img { /* 编辑列表里的缩略图 */
+            filter: blur(20px) !important;   /* 强力高斯模糊 */
+            opacity: 0.8;                    /* 稍微变淡一点 */
+            transition: all 0.3s ease;       /* 丝滑过渡 */
+        }
+
+        /* 2. 右上角的眼睛按钮样式 */
+        .privacy-toggle-btn {
+            position: absolute;
+            top: 20px; 
+            right: 20px;
+            font-size: 22px;
+            cursor: pointer;
+            z-index: 100; /* 保证在最上层 */
+            
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(5px);
+            width: 42px; height: 42px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            border: 2px solid #fff;
+            box-shadow: 0 4px 10px rgba(255, 183, 197, 0.2);
+            transition: all 0.2s;
+            color: var(--accent-color);
+        }
+        
+        .privacy-toggle-btn:active { transform: scale(0.9); }
+
+        /* ==================== ✨ 指尖魔法 (鼠标+点击特效) ==================== */
+        
+        /* 1. 全局鼠标变可爱 (换成猫爪或魔法棒) */
+        body {
+            /* 这里用的是一个通用的可爱光标链接，如果失效了会退化成默认的 */
+            cursor: url('https://cur.cursors-4u.net/nature/nat-2/nat120.cur'), auto; 
+        }
+        
+        /* 按钮变成手指 */
+        button, .card, .action-card, .stamp-btn {
+            cursor: url('https://cur.cursors-4u.net/nature/nat-2/nat122.cur'), pointer;
+        }
+
+        /* 2. 点击爆出的粒子 */
+        .magic-particle {
+            position: fixed;
+            pointer-events: none; /* 不挡鼠标 */
+            animation: particleFloat 1s ease-out forwards;
+            font-size: 20px;
+            z-index: 9999;
+            user-select: none;
+        }
+
+        @keyframes particleFloat {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+            100% { transform: translate(-50%, -150%) scale(1.5); opacity: 0; }
+        }
+
     </style>
 
     <style id="custom-reader-style"></style> 
@@ -726,7 +831,12 @@
     <div id="toast" class="toast">提示信息</div>
 
     <div id="appContainer">
-        <h1>🌸 我的百宝箱 v15.0 🌸</h1>
+        
+        <div class="privacy-toggle-btn" id="privacyBtn" onclick="togglePrivacyMode()" title="点击开启防窥/模糊模式">
+            👁️
+        </div>
+
+        <h1>🌸 我的百宝箱  🌸</h1>
 
         <div class="float-widget" id="floatWidget">
             <div class="float-menu" id="floatMenu">
@@ -766,10 +876,18 @@
             <div class="float-btn" id="floatBtn"></div>
         </div>
 
-        <div class="search-container">
-            <input type="text" class="search-input" id="searchInput" placeholder="搜索名称或标签..." oninput="handleSearch()">
-            <span class="search-icon">🔍</span>
+              <div class="search-container" style="display:flex; align-items:center; gap:10px;">
+            <div style="position:relative; flex-grow:1;">
+                <input type="text" class="search-input" id="searchInput" placeholder="搜索名称或标签..." oninput="handleSearch()">
+                <span class="search-icon">🔍</span>
+            </div>
+            
+            <label style="font-size:12px; color:var(--accent-color); cursor:pointer; display:flex; align-items:center; gap:4px; white-space:nowrap;">
+                <input type="checkbox" id="deepSearchCheck" onchange="handleSearch()" style="width:auto;">
+                搜内容
+            </label>
         </div>
+
 
         <div class="layout-bar">
             <span class="layout-label">👀 视图:</span>
@@ -832,10 +950,12 @@
         </div>
     </div>
 
-            <div class="modal-overlay" id="detailModal">
+                <div class="modal-overlay" id="detailModal">
         <div class="modal" style="position: relative; max-height: 85vh; padding: 0; display: flex; flex-direction: column; overflow: hidden;"> 
             
             <div class="memory-layer" id="memoryLayer" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none;"></div>
+
+            <div id="bigStamp" class="big-stamp-mark"></div>
 
             <div class="modal-content-wrapper" style="overflow-y: auto; flex-grow: 1; position: relative; z-index: 2; padding: 25px;">
                 
@@ -843,6 +963,13 @@
                 <h2 id="detailName" style="text-align:center; margin-bottom:5px; margin-top: 0;"></h2>
                 <div id="detailTags" style="display:flex; justify-content:center; gap:5px; margin-bottom:15px;"></div>
                 
+                <div class="stamp-bar">
+                    <div class="stamp-btn" onclick="toggleStamp('🍬')" title="超甜">🍬</div>
+                    <div class="stamp-btn" onclick="toggleStamp('🍋')" title="吃醋/酸涩">🍋</div>
+                    <div class="stamp-btn" onclick="toggleStamp('🔪')" title="刀子/虐心">🔪</div>
+                    <div class="stamp-btn" onclick="toggleStamp('🚗')" title="飙车/刺激">🚗</div>
+                    <div class="stamp-btn" onclick="toggleStamp('💤')" title="日常/睡觉">💤</div>
+                </div>
                 <div id="galleryArea">
                     <div class="gallery-container">
                         <div class="gallery-type-label" id="galleryTypeLabel">类型</div>
@@ -1441,6 +1568,9 @@ if (!n) { alert('名字不能为空'); return; } if (draftResources.length === 0
                 row.innerHTML = `<div style="display:flex;align-items:center;min-width:0;"><span class="detail-item-type">${lbl}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${icon} ${res.name}</span></div><div style="flex-shrink:0;margin-left:10px;">${btn}</div>`;
                 listContainer.appendChild(row); 
             });
+            // 👇 🟢 新增：渲染印章状态
+            renderStampStatus(items[index].stamp);
+            
     // 👇 🟢 在函数最后加这句，开始播放动画
     startMemoryAnimation(items[index].memories || []);
 document.getElementById('detailModal').classList.add('active'); 
@@ -1488,8 +1618,48 @@ document.getElementById('detailModal').classList.add('active');
         function renderSuggestTags() { const all=new Set(); items.forEach(i=>(i.tags||[]).forEach(t=>all.add(t))); const box=document.getElementById('suggestedTags'); box.innerHTML='';
             all.forEach(t=>{ const d=document.createElement('div'); d.className='tag-chip'; d.style.background='#f0f0f0'; d.style.color='#666'; d.style.cursor='pointer'; d.textContent=t; d.onclick=()=>{if(!currentTags.includes(t)){currentTags.push(t);renderTagsInput();}}; box.appendChild(d); });
         }
-        function handleSearch(){ const q=document.getElementById('searchInput').value.toLowerCase(); const f=items.filter(i=>i.name.toLowerCase().includes(q)||(i.tags||[]).some(t=>t.toLowerCase().includes(q))); renderGrid(f);
+                function handleSearch() {
+            const q = document.getElementById('searchInput').value.toLowerCase().trim();
+            const isDeep = document.getElementById('deepSearchCheck').checked; // 是否勾选了“搜内容”
+
+            if (!q) {
+                renderGrid(items); // 没字就显示全部
+                return;
+            }
+
+            const f = items.filter(item => {
+                // 1. 基础搜索：搜名字和标签
+                const matchBasic = item.name.toLowerCase().includes(q) || (item.tags || []).some(t => t.toLowerCase().includes(q));
+                
+                if (matchBasic) return true;
+
+                // 2. 深层搜索：如果勾选了，就去翻 resources 里的内容
+                if (isDeep && item.resources) {
+                    return item.resources.some(res => {
+                        // 只搜 JSON (聊天记录) 或 文本文件
+                        if (res.type === 'json' || res.type === 'file') {
+                            // 直接在字符串里找，简单粗暴且高效
+                            return res.content && res.content.toLowerCase().includes(q);
+                        }
+                        return false;
+                    });
+                }
+                
+                return false;
+            });
+
+            renderGrid(f);
+            
+            // 🟢 如果是深层搜索，给个提示反馈
+            if(isDeep && q) {
+                // 简单的防抖提示，避免每次打字都弹
+                // 这里我们直接利用 Grid 的空状态来提示
+                if(f.length === 0) {
+                    document.querySelector('.empty-state').innerHTML = `🤔 在回忆里找了一圈，没找到 "${q}"...`;
+                }
+            }
         }
+
         function closeAddModal() { document.getElementById('addModal').classList.remove('active'); }
                 function closeAddModal() { 
             document.getElementById('addModal').classList.remove('active'); 
@@ -2082,6 +2252,99 @@ document.getElementById('detailModal').classList.add('active');
                 }
             }
         }
+
+        // ================= 💮 印章系统逻辑 =================
+
+        // 切换印章（点击小图标时触发）
+        async function toggleStamp(char) {
+            if (viewingIndex === -1) return;
+            const item = items[viewingIndex];
+
+            // 如果当前已经是这个印章，再次点击就是取消
+            if (item.stamp === char) {
+                item.stamp = null; // 取消
+                auth.toast('印章已撤销 💨');
+            } else {
+                item.stamp = char; // 盖章
+                auth.toast('盖章成功！啪！💮');
+            }
+
+            // 保存数据
+            await saveItemToDB(item);
+            
+            // 刷新界面
+            renderStampStatus(item.stamp);
+            loadFromDB(); // 刷新列表数据
+        }
+
+        // 渲染印章（控制大印章和小图标的显示）
+        function renderStampStatus(currentStamp) {
+            const bigStamp = document.getElementById('bigStamp');
+            const btns = document.querySelectorAll('.stamp-btn');
+
+            // 1. 重置所有小图标
+            btns.forEach(btn => {
+                btn.classList.remove('active');
+                // 如果是当前印章，点亮它
+                if (btn.innerText === currentStamp) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // 2. 处理大印章动画
+            if (currentStamp) {
+                bigStamp.innerText = currentStamp;
+                // 先移除，强制重绘，再添加，为了每次都有“啪”的动画效果
+                bigStamp.classList.remove('stamped');
+                void bigStamp.offsetWidth; // 强制重绘魔法
+                bigStamp.classList.add('stamped');
+            } else {
+                bigStamp.classList.remove('stamped');
+            }
+        }
+
+        // ================= 🙈 防窥模式逻辑 =================
+        
+        function togglePrivacyMode() {
+            const body = document.body;
+            const btn = document.getElementById('privacyBtn');
+            
+            // 切换 class
+            body.classList.toggle('privacy-active');
+            
+            // 判断当前状态，改变图标和提示
+            if (body.classList.contains('privacy-active')) {
+                btn.textContent = '🙈'; // 变成捂眼睛的猴子
+                btn.style.backgroundColor = '#ffe6eb'; // 按钮变粉提示生效中
+                auth.toast('防窥模式已开启 🔒');
+            } else {
+                btn.textContent = '👁️'; // 变成睁开的眼睛
+                btn.style.backgroundColor = 'rgba(255, 255, 255, 0.6)'; // 恢复原样
+                auth.toast('已恢复清晰 ✨');
+            }
+        }
+
+        // ================= ✨ 指尖魔法逻辑 =================
+        window.addEventListener('click', function(e) {
+            // 随机特效池
+            const particles = ['🌸', '✨', '💗', '⭐', '🐾', '🎵'];
+            const p = document.createElement('div');
+            p.className = 'magic-particle';
+            p.innerText = particles[Math.floor(Math.random() * particles.length)];
+            
+            // 设置位置
+            p.style.left = e.clientX + 'px';
+            p.style.top = e.clientY + 'px';
+            
+            // 稍微随机一点角度和大小
+            const randomRot = Math.random() * 40 - 20; // -20度到20度
+            p.style.transform = `translate(-50%, -50%) rotate(${randomRot}deg)`;
+            
+            document.body.appendChild(p);
+            
+            // 动画结束后清理
+            setTimeout(() => p.remove(), 1000);
+        });
 
     </script>
 </body>
