@@ -726,7 +726,7 @@
     <div id="toast" class="toast">提示信息</div>
 
     <div id="appContainer">
-        <h1>🌸 我的百宝箱  🌸</h1>
+        <h1>🌸 我的百宝箱 v15.0 🌸</h1>
 
         <div class="float-widget" id="floatWidget">
             <div class="float-menu" id="floatMenu">
@@ -744,16 +744,21 @@
                     <button class="lottery-btn" onclick="startLottery()">🔮 命运的抉择</button>
                 </div>
 
-                <div class="tavern-portal-panel" style="margin-bottom:10px; text-align:center;">
+                           <div class="tavern-portal-panel" style="margin-bottom:15px; position:relative; width:100%;">
+                    
                     <button id="tavernJumpBtn" 
-                            style="background:linear-gradient(135deg, #fff7e6 0%, #ffe7ba 100%); border:2px solid #fff; color:#fa8c16; padding:8px 15px; border-radius:20px; font-size:13px; font-weight:bold; cursor:pointer; width:100%; box-shadow:0 4px 10px rgba(255, 169, 64, 0.2); transition:transform 0.2s;"
-                            onclick="handleTavernClick()" 
-                            title="单击：起飞去酒馆 | 双击：修改坐标">
+                            style="width:100%; box-sizing: border-box; background:linear-gradient(135deg, #fff7e6 0%, #ffe7ba 100%); border:2px solid #fff; color:#fa8c16; padding:8px 15px; border-radius:20px; font-size:13px; font-weight:bold; cursor:pointer; box-shadow:0 4px 10px rgba(255, 169, 64, 0.2); transition:transform 0.2s;"
+                            onclick="jumpToTavern()">
                         🍺 启动酒馆
                     </button>
-                    <div style="font-size:10px; color:#ccc; margin-top:4px;">(单击跳转，双击修改链接)</div>
+                    
+                    <button style="position:absolute; right:2px; top:2px; height:calc(100% - 4px); width:35px; background:transparent; border:none; color:#fa8c16; cursor:pointer; display:flex; align-items:center; justify-content:center; opacity:0.6;"
+                            onclick="changeTavernLink()"
+                            title="修改酒馆链接">
+                        ⚙️
+                    </button>
                 </div>
-
+               
                 <div class="nav-panel" id="navPanel">
                     <div class="nav-title">🏷️ 快速跳转</div>
                 </div>
@@ -2035,60 +2040,47 @@ document.getElementById('detailModal').classList.add('active');
             }, randomDuration * 1000);
         }
 
-// ================= 🍺 酒馆传送门逻辑 =================
+ // ================= 🍺 酒馆传送门逻辑 (极速版) =================
         
-        let tavernClickTimer = null; // 用来区分单击和双击的计时器
-
-        function handleTavernClick() {
-            // 如果已经在计时了，说明是第二次点击（双击）
-            if (tavernClickTimer) {
-                clearTimeout(tavernClickTimer); // 取消单击事件
-                tavernClickTimer = null;
-                changeTavernLink(); // 执行修改逻辑
-            } else {
-                // 第一次点击，启动计时器，等250毫秒
-                tavernClickTimer = setTimeout(() => {
-                    tavernClickTimer = null;
-                    jumpToTavern(); // 时间到了没再点，执行跳转逻辑
-                }, 250); 
-            }
-        }
-
-        // 🚀 跳转逻辑
+        // 🚀 启动逻辑 (无延迟，浏览器不会拦截)
         function jumpToTavern() {
             let url = localStorage.getItem('my_tavern_simple_url');
             
             // 第一次用，还没存过链接
             if (!url) {
-                url = prompt("🍺 第一次启动，请输入你的酒馆链接：\n(例如 http://127.0.0.1:8000 )");
-                if (url) {
-                    saveTavernLink(url);
-                    window.open(url, '_blank'); // 打开链接
-                }
+                // 如果没链接，直接调用修改函数
+                changeTavernLink(true); 
             } else {
-                // 存过了，直接飞
+                // 有链接，直接飞
                 window.open(url, '_blank');
             }
         }
 
         // ✏️ 修改逻辑
-        function changeTavernLink() {
+        function changeTavernLink(isFirstTime = false) {
             const oldUrl = localStorage.getItem('my_tavern_simple_url') || 'http://127.0.0.1:8000';
-            const newUrl = prompt("🔧 修改酒馆坐标：", oldUrl);
+            const msg = isFirstTime ? "🍺 第一次启动，请输入酒馆链接：" : "🔧 修改酒馆坐标：";
+            
+            let newUrl = prompt(msg + "\n(例如 http://127.0.0.1:8000 )", oldUrl);
             
             if (newUrl) {
-                saveTavernLink(newUrl);
+                // 贴心地帮用户加上 http (防止用户只写 IP)
+                if (!newUrl.startsWith('http')) {
+                    newUrl = 'http://' + newUrl;
+                }
+                // 去掉末尾的斜杠 / (防止拼接出错)
+                if (newUrl.endsWith('/')) {
+                    newUrl = newUrl.slice(0, -1);
+                }
+                
+                localStorage.setItem('my_tavern_simple_url', newUrl);
+                auth.toast('酒馆坐标已锁定 📍');
+                
+                // 如果是第一次设置，设置完直接跳
+                if(isFirstTime) {
+                    window.open(newUrl, '_blank');
+                }
             }
-        }
-
-        // 💾 保存辅助函数
-        function saveTavernLink(url) {
-            // 贴心地帮用户去掉末尾的斜杠，或者加上 http
-            if (url && !url.startsWith('http')) {
-                url = 'http://' + url;
-            }
-            localStorage.setItem('my_tavern_simple_url', url);
-            auth.toast('酒馆坐标已锁定 📍');
         }
 
     </script>
