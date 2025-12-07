@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>✨ 我的百宝箱 v6.3 (下载修复版) ✨</title>
+    <title>✨ 我的百宝箱 v7.0 (无限空间版) ✨</title>
     <style>
         /* --- 引入定制字体 --- */
         @font-face {
@@ -131,12 +131,10 @@
         .cover-btn.is-cover { background: var(--accent-color); color: white; }
         .download-img-btn { position: absolute; bottom: 10px; right: 10px; background: rgba(255,255,255,0.9); border: 2px solid var(--primary-color); color: var(--primary-color); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); z-index: 10; transition: all 0.2s;}
         
-        /* 详情页列表 */
         .detail-list { margin-top: 10px; }
         .detail-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed #eee; font-size: 14px; }
         .detail-item-type { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; color: #888; margin-right: 5px; font-size: 12px; }
         
-        /* 下载小按钮 */
         .action-link { 
             color: var(--accent-color); text-decoration: none; cursor: pointer; font-weight: bold; font-size: 12px;
             background: #fff0f3; padding: 4px 8px; border-radius: 4px; transition: background 0.2s;
@@ -153,7 +151,7 @@
 </head>
 <body>
 
-    <h1>🌸 我的百宝箱 v6.3 🌸</h1>
+    <h1>🌸 我的百宝箱 v7.0 🌸</h1>
 
     <div class="float-widget" id="floatWidget">
         <div class="float-menu" id="floatMenu">
@@ -185,7 +183,9 @@
         <input type="file" id="importAllInput" accept=".json" onchange="importAllData(this)">
     </div>
 
-    <div class="grid-container" id="gridContainer"></div>
+    <div class="grid-container" id="gridContainer">
+        <div class="empty-state">正在初始化数据库... 💾</div>
+    </div>
 
     <div class="modal-overlay" id="addModal">
         <div class="modal">
@@ -287,25 +287,98 @@
         const PLACEHOLDER_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23ffe6eb'/%3E%3Ctext x='50' y='50' fill='%23ffb7c5' text-anchor='middle' dy='.3em'%3E无图%3C/text%3E%3C/svg%3E";
         const DEFAULT_MUSIC = "https://files.catbox.moe/btptsb.mp3";
 
+        // --- IndexedDB 初始化 ---
+        const DB_NAME = 'MyMagicDB';
+        const STORE_NAME = 'items';
+        let db;
+
         window.onload = function() {
-            const data = localStorage.getItem('my_magic_collection_v3');
-            if (data) {
-                let raw = JSON.parse(data);
-                if (raw.length > 0 && raw[0].images) {
-                    items = raw.map(old => {
-                        const newRes = [];
-                        (old.images || []).forEach(img => { newRes.push({ type: 'image', subType: old.type || '默认', name: 'image.png', content: img }); });
-                        (old.jsons || []).forEach(j => { newRes.push({ type: 'json', subType: '默认', name: j.name, content: j.content }); });
-                        return { name: old.name, tags: old.tags, coverIndex: old.coverIndex || 0, date: old.date, resources: newRes };
-                    });
-                    saveToStorage();
-                } else { items = raw; }
-            }
-            renderGrid(items);
+            initDB().then(() => {
+                loadFromDB();
+                // 尝试迁移旧数据
+                migrateFromLocalStorage();
+            });
             initMusic();
-            renderNavPanel();
             initDraggable();
         };
+
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, 1);
+                request.onerror = (e) => { console.error("Database error", e); reject(); };
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+                    }
+                };
+                request.onsuccess = (e) => {
+                    db = e.target.result;
+                    resolve();
+                };
+            });
+        }
+
+        // --- 核心 CRUD (基于 IndexedDB) ---
+        
+        async function loadFromDB() {
+            const tx = db.transaction(STORE_NAME, 'readonly');
+            const store = tx.objectStore(STORE_NAME);
+            const request = store.getAll();
+            
+            request.onsuccess = () => {
+                // 按日期倒序
+                items = request.result.sort((a, b) => new Date(b.date) - new Date(a.date));
+                renderGrid(items);
+                renderNavPanel();
+            };
+        }
+
+        async function saveItemToDB(item) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, 'readwrite');
+                const store = tx.objectStore(STORE_NAME);
+                let req;
+                if(item.id) req = store.put(item); // 更新
+                else req = store.add(item); // 新增
+                
+                req.onsuccess = () => { resolve(req.result); };
+                req.onerror = () => { alert('保存失败，可能是文件太大了？'); reject(); };
+            });
+        }
+
+        async function deleteItemFromDB(id) {
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            const store = tx.objectStore(STORE_NAME);
+            store.delete(id);
+            return new Promise(resolve => tx.oncomplete = resolve);
+        }
+
+        // 迁移逻辑
+        function migrateFromLocalStorage() {
+            const oldData = localStorage.getItem('my_magic_collection_v3');
+            if(oldData) {
+                try {
+                    const parsed = JSON.parse(oldData);
+                    if(parsed.length > 0) {
+                        if(confirm('发现旧版本数据，是否迁移到无限空间？(迁移后旧数据会从缓存清空)')) {
+                            const tx = db.transaction(STORE_NAME, 'readwrite');
+                            const store = tx.objectStore(STORE_NAME);
+                            parsed.forEach(item => {
+                                // 移除可能的旧 ID 以便生成新的，或者直接存
+                                delete item.id; 
+                                store.add(item);
+                            });
+                            tx.oncomplete = () => {
+                                alert('迁移成功！享受无限空间吧！✨');
+                                localStorage.removeItem('my_magic_collection_v3'); // 清空旧的
+                                loadFromDB();
+                            };
+                        }
+                    }
+                } catch(e) { console.error("Migration failed", e); }
+            }
+        }
 
         // --- 核心渲染 ---
         function renderGrid(dataList) {
@@ -314,6 +387,7 @@
             if (dataList.length === 0) { container.innerHTML = '<div class="empty-state">空空的...快去添加吧！</div>'; return; }
             
             dataList.forEach((item) => {
+                // 使用 index 查找
                 const realIndex = items.indexOf(item);
                 const card = document.createElement('div'); card.className = 'card';
                 card.onclick = () => openDetailModal(realIndex);
@@ -425,13 +499,36 @@
                 document.getElementById('newLinkName').value = ''; document.getElementById('newLinkUrl').value = ''; document.getElementById('linkInputArea').style.display = 'none';
             } else { alert('请输入名称和网址'); }
         }
-        function saveItem() {
+
+        // 保存 - 改为异步
+        async function saveItem() {
             const name = document.getElementById('itemName').value.trim();
             if (!name) { alert('名字不能为空'); return; }
             if (draftResources.length === 0) { alert('盒子不能为空哦'); return; }
-            const itemData = { name: name, tags: [...currentTags], resources: draftResources, coverIndex: 0, date: new Date().toISOString() };
-            if (isEditing) { itemData.coverIndex = items[editingIndex].coverIndex; items[editingIndex] = itemData; } else { items.unshift(itemData); }
-            saveToStorage(); handleSearch(); closeAddModal();
+            
+            // 构建对象
+            const itemData = { 
+                name: name, 
+                tags: [...currentTags], 
+                resources: draftResources, 
+                coverIndex: 0, 
+                date: new Date().toISOString() 
+            };
+
+            if (isEditing) {
+                // 保持 ID 不变进行更新
+                const oldItem = items[editingIndex];
+                itemData.id = oldItem.id;
+                itemData.coverIndex = oldItem.coverIndex;
+            }
+
+            // 保存到 DB
+            await saveItemToDB(itemData);
+            
+            // 重新加载显示
+            loadFromDB();
+            handleSearch(); 
+            closeAddModal();
         }
 
         // --- 详情 ---
@@ -478,9 +575,15 @@
             galleryIndex += d; if(galleryIndex >= images.length) galleryIndex = 0; if(galleryIndex < 0) galleryIndex = images.length - 1;
             updateGalleryUI(images);
         }
-        function setAsCover() {
-            if(viewingIndex === -1) return; items[viewingIndex].coverIndex = galleryIndex; saveToStorage(); 
-            const images = items[viewingIndex].resources.filter(r => r.type === 'image'); updateGalleryUI(images); handleSearch();
+        async function setAsCover() {
+            if(viewingIndex === -1) return; 
+            const item = items[viewingIndex];
+            item.coverIndex = galleryIndex;
+            await saveItemToDB(item); // 更新到 DB
+            const images = item.resources.filter(r => r.type === 'image'); 
+            updateGalleryUI(images); 
+            // 不需要重新加载全部，只需更新UI（但为了简单，重新加载grid）
+            loadFromDB(); 
         }
         function downloadCurrentGalleryImg() {
             const images = items[viewingIndex].resources.filter(r => r.type === 'image'); if(images.length === 0) return;
@@ -490,7 +593,6 @@
             const res = items[viewingIndex].resources[resIndex]; if(res.type === 'link') return; downloadFile(res.name, res.content);
         }
 
-        // --- 核心修复：强制追加 a 标签到 body ---
         function downloadFile(name, content) {
             const a = document.createElement('a');
             if (content.startsWith('data:')) {
@@ -500,12 +602,9 @@
                 a.href = URL.createObjectURL(blob);
             }
             a.download = name;
-            
-            // 关键修复步骤：
-            document.body.appendChild(a); // 1. 把它挂到页面上
-            a.click();                    // 2. 模拟点击
-            document.body.removeChild(a); // 3. 移除它
-            
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
             if (!content.startsWith('data:')) URL.revokeObjectURL(a.href);
         }
 
@@ -518,10 +617,48 @@
         function handleSearch(){ const q=document.getElementById('searchInput').value.toLowerCase(); const f=items.filter(i=>i.name.toLowerCase().includes(q)||(i.tags||[]).some(t=>t.toLowerCase().includes(q))); renderGrid(f); }
         function closeAddModal() { document.getElementById('addModal').classList.remove('active'); }
         function closeDetailModal() { document.getElementById('detailModal').classList.remove('active'); viewingIndex=-1; }
-        function deleteCurrentItem() { if(confirm('确定删除吗？')) { items.splice(viewingIndex,1); saveToStorage(); handleSearch(); closeDetailModal(); } }
-        function saveToStorage() { try { localStorage.setItem('my_magic_collection_v3', JSON.stringify(items)); renderNavPanel(); } catch (e) { alert('⚠️ 存储空间满了！'); } }
-        function exportAllData() { const blob = new Blob([JSON.stringify(items)], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `备份_${new Date().toISOString().slice(0,10)}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
-        function importAllData(el) { const file = el.files[0]; if(!file) return; const r = new FileReader(); r.onload = e => { try { items = JSON.parse(e.target.result); saveToStorage(); renderGrid(items); renderNavPanel(); alert('导入成功！'); } catch{ alert('文件格式错误'); } }; r.readAsText(file); }
+        
+        async function deleteCurrentItem() { 
+            if(confirm('确定删除吗？')) { 
+                const id = items[viewingIndex].id;
+                await deleteItemFromDB(id);
+                loadFromDB(); 
+                closeDetailModal(); 
+            } 
+        }
+
+        function exportAllData() { 
+            // 从 DB 重新获取最新数据导出
+            const tx = db.transaction(STORE_NAME, 'readonly');
+            const store = tx.objectStore(STORE_NAME);
+            const req = store.getAll();
+            req.onsuccess = () => {
+                const blob = new Blob([JSON.stringify(req.result)], {type:'application/json'}); 
+                const a = document.createElement('a'); 
+                a.href = URL.createObjectURL(blob); 
+                a.download = `备份_${new Date().toISOString().slice(0,10)}.json`; 
+                document.body.appendChild(a); 
+                a.click(); 
+                document.body.removeChild(a);
+            }
+        }
+        
+        function importAllData(el) { 
+            const file = el.files[0]; if(!file) return; 
+            const r = new FileReader(); 
+            r.onload = e => { 
+                try { 
+                    const imported = JSON.parse(e.target.result); 
+                    if(Array.isArray(imported)) {
+                        const tx = db.transaction(STORE_NAME, 'readwrite');
+                        const store = tx.objectStore(STORE_NAME);
+                        imported.forEach(item => { delete item.id; store.add(item); }); // 移除旧ID
+                        tx.oncomplete = () => { loadFromDB(); alert('导入成功！'); };
+                    }
+                } catch{ alert('文件格式错误'); } 
+            }; 
+            r.readAsText(file); 
+        }
         
         function initMusic() { const link = localStorage.getItem('my_bgm_link') || DEFAULT_MUSIC; const audio = document.getElementById('bgMusic'); audio.src = link; audio.volume = 0.5; document.getElementById('musicLink').value = link; }
         function toggleMusic() { const a=document.getElementById('bgMusic'); const b=document.getElementById('playBtn'); if(a.paused){a.play();b.textContent='⏸';}else{a.pause();b.textContent='▶';} }
