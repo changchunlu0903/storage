@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>✨ 梨梨的百宝箱 (安全版) ✨</title>
+    <title>✨ 梨梨的百宝箱 (UI最终重制版) ✨</title>
     <style>
         /* --- 引入定制字体 --- */
         @font-face {
@@ -27,7 +27,7 @@
             background-color: var(--secondary-color);
             color: var(--text-color);
             margin: 0;
-            padding: 0; /* 修改为0，由内部容器控制padding */
+            padding: 0;
             overflow-x: hidden;
             height: 100vh;
         }
@@ -70,7 +70,6 @@
         .lock-title { font-size: 24px; color: var(--accent-color); margin-bottom: 10px; font-weight: bold; }
         .lock-subtitle { color: #999; font-size: 14px; margin-bottom: 30px; line-height: 1.6; }
 
-        /* 欢迎页特定样式 (复刻图片) */
         .welcome-btn {
             display: block; width: 100%; padding: 18px; border-radius: 50px;
             margin-bottom: 15px; border: none; font-size: 16px; color: white;
@@ -80,11 +79,9 @@
         .welcome-btn:active { transform: scale(0.98); }
         .btn-gesture { background: #ffb7c5; }
         .btn-pin { background: linear-gradient(90deg, #a8edea 0%, #ffb7c5 100%); }
+        .btn-login-pink { background: #ff9eb5; box-shadow: 0 8px 20px rgba(255, 158, 181, 0.4); }
 
-        /* 数字键盘样式 */
-        .pin-display {
-            display: flex; justify-content: center; gap: 15px; margin-bottom: 30px;
-        }
+        .pin-display { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; }
         .pin-dot {
             width: 16px; height: 16px; border-radius: 50%;
             background: #eee; border: 2px solid #ddd; transition: all 0.2s;
@@ -100,23 +97,19 @@
         }
         .num-btn:active { background: var(--secondary-color); }
 
-        /* 手势图案样式 */
         .gesture-container { position: relative; width: 300px; height: 300px; margin: 0 auto; touch-action: none; }
-        .gesture-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; }
+        .gesture-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; cursor: crosshair; }
         .gesture-grid {
             display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr);
-            width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1;
+            width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; pointer-events: none;
         }
-        .gesture-point {
-            display: flex; align-items: center; justify-content: center;
-        }
+        .gesture-point { display: flex; align-items: center; justify-content: center; }
         .point-inner {
             width: 18px; height: 18px; background: #ddd; border-radius: 50%;
             transition: 0.3s;
         }
         .point-inner.active { background: var(--accent-color); box-shadow: 0 0 0 10px rgba(255, 143, 163, 0.2); }
 
-        /* 表单输入框 */
         .lock-input {
             width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ffe6eb;
             border-radius: 12px; text-align: center; font-family: inherit;
@@ -124,11 +117,8 @@
         }
         .lock-input:focus { border-color: var(--accent-color); }
 
-        .back-link {
-            margin-top: 20px; font-size: 13px; color: #bbb; cursor: pointer; text-decoration: underline;
-        }
+        .back-link { margin-top: 20px; font-size: 13px; color: #bbb; cursor: pointer; text-decoration: underline; }
 
-        /* 消息提示 */
         .toast {
             position: fixed; top: 50px; left: 50%; transform: translateX(-50%);
             background: rgba(0,0,0,0.7); color: white; padding: 10px 20px;
@@ -136,9 +126,67 @@
             transition: opacity 0.3s; z-index: 20000;
         }
 
-        /* ==================== 原有 CSS (加了 app-container 作用域) ==================== */
+        /* ==================== 🔮 抽签系统样式 ==================== */
+        .lottery-panel { margin-bottom: 15px; text-align: center; }
+        .lottery-btn {
+            background: linear-gradient(135deg, #fff0f5 0%, #ffc0cb 100%);
+            border: 2px solid #fff; color: #d66a80;
+            padding: 8px 15px; border-radius: 20px; font-size: 13px; font-family: inherit;
+            cursor: pointer; width: 100%; box-shadow: 0 4px 10px rgba(255, 183, 197, 0.3);
+            font-weight: bold; transition: transform 0.2s;
+        }
+        .lottery-btn:active { transform: scale(0.95); }
+
+        .lottery-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 230, 235, 0.9); backdrop-filter: blur(8px);
+            z-index: 12000; display: none; flex-direction: column;
+            justify-content: center; align-items: center;
+        }
+        .lottery-overlay.active { display: flex; animation: fadeInLottery 0.3s ease; }
+        @keyframes fadeInLottery { from {opacity:0;} to {opacity:1;} }
+
+        .lottery-box-container { text-align: center; position: relative; }
+        .magic-gift { font-size: 100px; display: block; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1)); }
+        .magic-gift.shaking { animation: shakeBox 0.5s infinite; }
+        @keyframes shakeBox {
+            0% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(10deg) scale(1.1); }
+            50% { transform: rotate(0deg) scale(1); }
+            75% { transform: rotate(-10deg) scale(1.1); }
+            100% { transform: rotate(0deg) scale(1); }
+        }
+
+        .lottery-result-card {
+            display: none; flex-direction: column; align-items: center;
+            background: white; padding: 20px; border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(255, 100, 150, 0.3); border: 4px solid #fff;
+            width: 260px; animation: popIn 0.6s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+        @keyframes popIn { from {transform: scale(0) rotate(-20deg); opacity: 0;} to {transform: scale(1) rotate(0); opacity: 1;} }
+
+        .lottery-img-wrapper {
+            width: 220px; height: 220px; border-radius: 20px; overflow: hidden;
+            margin-bottom: 15px; border: 2px solid #ffe6eb; background: #fff5f7;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .lottery-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .lottery-name { font-size: 20px; color: var(--accent-color); font-weight: bold; margin-bottom: 5px; }
+        .lottery-hint { font-size: 12px; color: #aaa; margin-bottom: 15px; }
+        
+        .go-btn {
+            background: var(--accent-color); color: white; border: none;
+            padding: 10px 30px; border-radius: 25px; font-size: 16px;
+            cursor: pointer; box-shadow: 0 5px 15px rgba(255, 143, 163, 0.4);
+            animation: pulse 2s infinite; font-family: inherit;
+        }
+        @keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.05);} 100% {transform: scale(1);} }
+        .close-lottery { position: absolute; top: 30px; right: 30px; font-size: 30px; color: #fff; background: rgba(0,0,0,0.1); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+        /* ==================== 原有 CSS ==================== */
         #appContainer {
-            display: none; /* 默认隐藏，解锁后显示 */
+            display: none; 
             padding: 20px;
             padding-bottom: 100px;
             animation: fadeIn 0.5s ease;
@@ -171,24 +219,124 @@
         }
         .float-menu.active { transform: scale(1); opacity: 1; pointer-events: auto; }
 
-        .music-panel { background: var(--secondary-color); border-radius: 15px; padding: 12px; margin-bottom: 15px; text-align: center; }
+        .music-panel { background: var(--secondary-color); border-radius: 15px; padding: 12px; margin-bottom: 10px; text-align: center; }
         .music-controls { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 8px; }
         .play-btn { background: var(--accent-color); color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .nav-panel { flex-grow: 1; overflow-y: auto; }
-        .nav-title { font-weight: bold; color: var(--accent-color); margin-bottom: 8px; border-bottom: 1px dashed #ddd; }
+        .nav-panel { flex-grow: 1; overflow-y: auto; border-top: 1px dashed #ddd; padding-top: 10px; }
+        .nav-title { font-weight: bold; color: var(--accent-color); margin-bottom: 8px; font-size: 13px; }
         
-        /* --- 卡片与布局 --- */
-        .search-container { max-width: 600px; margin: 0 auto 30px auto; position: relative; }
+        .search-container { max-width: 600px; margin: 0 auto 10px auto; position: relative; }
         .search-input { width: 100%; padding: 15px 50px 15px 25px; border: 2px solid #fff; border-radius: 50px; background: rgba(255, 255, 255, 0.9); font-size: 16px; outline: none; font-family: inherit; }
         .search-input:focus { border-color: var(--primary-color); }
         .search-icon { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); color: var(--primary-color); }
 
-        .controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; flex-wrap: wrap; }
-        button { background: #fff; border: 2px solid var(--primary-color); color: var(--accent-color); padding: 8px 18px; border-radius: 50px; cursor: pointer; font-family: inherit; font-size: 14px; transition: all 0.2s; display: flex; align-items: center; gap: 5px; }
-        button:hover { background: var(--primary-color); color: white; transform: translateY(-2px); }
-        button.primary-btn { background: var(--accent-color); color: white; border: none; }
+             /* 🟢 视图切换栏 (修改版：增加标题和精致感) */
+        .layout-bar {
+            display: flex; 
+            align-items: center; /* 垂直居中对齐 */
+            justify-content: center;
+            gap: 4px; /* 缩小按钮间距 */
+            margin: 0 auto 25px auto;
+            background: rgba(255, 255, 255, 0.85); /* 背景稍微不那么透明 */
+            backdrop-filter: blur(5px);
+            padding: 6px 12px 6px 15px; /* 调整内边距，左侧给文字留空 */
+            border-radius: 50px;
+            width: fit-content;
+            border: 2px solid #fff0f5; /* 边框改成浅粉色 */
+            box-shadow: 0 5px 15px rgba(255, 183, 197, 0.25); /* 阴影稍微加深一点 */
+        }
 
-        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
+        /* 新增：视图栏标题样式 */
+        .layout-label {
+            font-size: 13px;
+            color: var(--accent-color); /* 使用主题强调色 */
+            font-weight: bold;
+            margin-right: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .layout-btn {
+            background: none; border: none; 
+            width: 36px; height: 36px; /* 稍微缩小按钮尺寸 (原40px) */
+            cursor: pointer; 
+            border-radius: 50%; transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0.6; /* 未选中状态稍微透明点 */
+        }
+        /* SVG 图标样式 */
+               .layout-btn {
+            background: none; border: none; 
+            width: 36px; height: 36px; 
+            cursor: pointer; 
+            border-radius: 50%; transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0.6;
+            font-size: 18px; /* ✨ 新增：设置 Emoji 图标的大小 */
+        }
+        /* 删除原来的 .layout-icon 样式块，因为不再使用 SVG 了 */
+
+
+               /* 🟢 操作按钮网格 (修改版：一行 + Hello Kitty风格) */
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 核心修改：改为4列，即一行显示 */
+            gap: 10px; /* 间距缩小，防止挤出屏幕 */
+            max-width: 95%; /* 宽度占满一点 */
+            margin: 0 auto 20px auto;
+        }
+        
+        .action-card {
+            background: #fff; /* Hello Kitty 的经典白色背景 */
+            border: 2px solid #ffb7c5; /* 粉色边框 */
+            border-radius: 20px;
+            padding: 10px 2px; /* 减小内边距，适应小按钮 */
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #ff8fa3; /* 文字颜色 */
+            font-weight: bold;
+            font-size: 12px; /* 字体改小，防止换行 */
+            box-shadow: 0 4px 10px rgba(255, 183, 197, 0.2);
+            height: 70px; /* 固定高度，整齐划一 */
+        }
+        
+        .action-card:active { transform: scale(0.95); }
+
+        /* 专门给第一个按钮去掉原来的深色背景，统一成 Hello Kitty 风格 */
+        .action-card.primary {
+            background: #fff;
+            border: 2px solid #ff8fa3; /*稍微深一点的粉色突出它是主要的*/
+            color: #ff8fa3;
+            box-shadow: 0 4px 12px rgba(255, 143, 163, 0.3);
+        }
+
+        /* 🎀 Hello Kitty 图标样式 */
+        .kitty-icon {
+            font-size: 24px; /* 图标大小 */
+            margin-bottom: 2px;
+            filter: drop-shadow(0 2px 2px rgba(255,183,197,0.3));
+        }
+        
+        /* 隐藏原有的 controls */
+        .controls { display: none; }
+
+        /* 🟢 Grid 布局模式 */
+        .grid-container { display: grid; gap: 20px; max-width: 1200px; margin: 0 auto; transition: all 0.3s ease; }
+        .grid-container.mode-default { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+        .grid-container.mode-large { grid-template-columns: repeat(auto-fill, minmax(40%, 1fr)); }
+        .grid-container.mode-mini { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+        .grid-container.mode-mini .card-img-wrapper { height: 120px; }
+        .grid-container.mode-mini .card-title { font-size: 14px; }
+        .grid-container.mode-list { grid-template-columns: 1fr; }
+        .grid-container.mode-list .card { flex-direction: row; height: 100px; }
+        .grid-container.mode-list .card-img-wrapper { width: 100px; height: 100%; flex-shrink: 0; }
+        .grid-container.mode-list .card-content { justify-content: center; }
+        .grid-container.mode-list .tags-container { margin-top: 5px; }
+
         .card { background: #fff; border-radius: var(--radius); overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: transform 0.3s; border: 3px solid #fff; display: flex; flex-direction: column; cursor: pointer; position: relative; }
         .card:hover { transform: translateY(-5px); border-color: var(--primary-color); }
         .card-img-wrapper { height: 200px; background-color: #fcecef; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
@@ -202,13 +350,11 @@
         .tags-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: auto; }
         .tag-pill { background: var(--secondary-color); color: var(--accent-color); font-size: 12px; padding: 2px 6px; border-radius: 8px; }
 
-        /* --- 弹窗 --- */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 240, 245, 0.85); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 2000; }
         .modal-overlay.active { display: flex; }
         .modal { background: white; padding: 25px; border-radius: 25px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: 0 15px 40px rgba(255, 130, 150, 0.2); position: relative; }
         .close-modal { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 28px; cursor: pointer; color: #ccc; }
 
-        /* ...保留原有的其他CSS... */
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; font-size: 16px; color: var(--accent-color); }
         input[type="text"], select { width: 100%; padding: 10px; border: 2px solid var(--secondary-color); border-radius: 12px; outline: none; box-sizing: border-box; background: #fff; font-family: inherit; font-size: 15px; }
@@ -217,13 +363,23 @@
         .tag-input-area input { border: none; outline: none; flex-grow: 1; padding: 5px; font-family: inherit; }
         .tag-chip { background: var(--primary-color); color: white; padding: 3px 8px; border-radius: 10px; font-size: 14px; display: flex; gap: 5px; align-items: center; }
 
-        .resource-list { border: 1px solid #eee; border-radius: 12px; padding: 10px; max-height: 200px; overflow-y: auto; background: #fafafa; }
-        .resource-item { display: flex; align-items: center; gap: 10px; background: white; padding: 8px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #f0f0f0; }
+        .resource-list { border: 1px solid #eee; border-radius: 12px; padding: 10px; max-height: 250px; overflow-y: auto; background: #fafafa; }
+        .resource-item { display: flex; align-items: flex-start; gap: 10px; background: white; padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #f0f0f0; flex-wrap: wrap;}
         .resource-preview { width: 40px; height: 40px; border-radius: 5px; object-fit: cover; background: #eee; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 20px;}
-        .resource-info { flex-grow: 1; min-width: 0; }
-        .resource-name { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .resource-type-select { font-size: 12px; padding: 2px; border: 1px solid #ddd; border-radius: 4px; margin-top: 2px; font-family: inherit; }
-        .btn-remove { background: #ffdede; color: #ff6b6b; border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; font-weight: bold; }
+        .resource-info { flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+        
+        .resource-name-input {
+            width: 100%; border: none; border-bottom: 1px dashed #ccc; 
+            padding: 2px 0; font-size: 14px; color: #333; border-radius: 0; 
+            background: transparent; outline: none;
+        }
+        .resource-name-input:focus { border-bottom-color: var(--accent-color); }
+        
+        .resource-controls { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+        .resource-type-select { font-size: 12px; padding: 2px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; width: auto; flex-grow: 1; max-width: 120px; }
+        .custom-type-input { font-size: 12px; padding: 2px 5px; border: 1px solid #ffb7c5; border-radius: 4px; width: 80px; display: none; }
+
+        .btn-remove { background: #ffdede; color: #ff6b6b; border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; font-weight: bold; margin-left: auto; align-self: center;}
 
         .add-btn-row { display: flex; gap: 10px; margin-top: 5px; }
         .small-btn { font-size: 14px; padding: 5px 12px; }
@@ -253,18 +409,41 @@
         .edit-btn { background: #fff8e1; border-color: #ffc107; color: #ffb300; }
         
         input[type="file"] { display: none; }
+        
+        button { background: #fff; border: 2px solid var(--primary-color); color: var(--accent-color); padding: 8px 18px; border-radius: 50px; cursor: pointer; font-family: inherit; font-size: 14px; transition: all 0.2s; display: flex; align-items: center; gap: 5px; }
+        button:hover { background: var(--primary-color); color: white; transform: translateY(-2px); }
+        button.primary-btn { background: var(--accent-color); color: white; border: none; }
     </style>
 </head>
 <body>
 
+    <div id="lotteryOverlay" class="lottery-overlay">
+        <div class="close-lottery" onclick="closeLottery()">×</div>
+        <div class="lottery-box-container" id="lotteryBox">
+            <div class="magic-gift" id="magicGift">🎁</div>
+            <div class="lottery-result-card" id="lotteryResult">
+                <div class="lottery-img-wrapper"><img id="lotteryImg" src=""></div>
+                <div class="lottery-name" id="lotteryName">???</div>
+                <div class="lottery-hint">✨ 命运选择了它 ✨</div>
+                <button class="go-btn" onclick="goToLotteryItem()">👉 就是你了！</button>
+            </div>
+        </div>
+    </div>
+
     <div id="lockScreen">
         <div id="sakuraContainer"></div>
 
+        <div id="view-landing" class="lock-card" style="display:none; text-align:center;">
+            <div style="font-size:50px; margin-bottom:20px;">🌸</div>
+            <div class="lock-title" style="font-size:28px;">欢迎来到你的百宝箱</div>
+            <div class="lock-subtitle">✨ 每一天都是新的开始 ✨</div>
+            <button class="welcome-btn btn-login-pink" style="color:white; margin-top:30px; font-size:18px;" onclick="auth.proceedFromLanding()">✨ 立即登录 ✨</button>
+        </div>
+
         <div id="view-welcome" class="lock-card" style="display:none;">
             <div style="font-size:40px; margin-bottom:10px;">🌸</div>
-            <div class="lock-title">欢迎来到你的百宝箱</div>
+            <div class="lock-title">设置解锁方式</div>
             <div class="lock-subtitle">第一次来，先给自己挑一把钥匙吧！</div>
-            
             <button class="welcome-btn btn-gesture" onclick="auth.startSetup('gesture')">我是手势控 (连线解锁)</button>
             <button class="welcome-btn btn-pin" onclick="auth.startSetup('pin')">我是数字控 (PIN码解锁)</button>
         </div>
@@ -272,7 +451,6 @@
         <div id="view-setup-question" class="lock-card" style="display:none;">
             <div class="lock-title">🔐 安全保障</div>
             <div class="lock-subtitle">万一忘了密码，这个可以救你！</div>
-            
             <div class="form-group" style="text-align:left;">
                 <label>设置一个安全问题</label>
                 <input type="text" id="secQuestion" class="lock-input" placeholder="例如：我的第一只宠物是？">
@@ -281,18 +459,15 @@
                 <label>问题的答案</label>
                 <input type="text" id="secAnswer" class="lock-input" placeholder="输入答案">
             </div>
-            
             <button class="welcome-btn btn-gesture" onclick="auth.saveSecurityQuestion()">完成设置</button>
         </div>
 
         <div id="view-pin" class="lock-card" style="display:none;">
             <div class="lock-title" id="pinTitle">请输入密码</div>
             <div class="lock-subtitle" id="pinSub">输入4位数字密码</div>
-            
             <div class="pin-display" id="pinDots">
                 <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
             </div>
-            
             <div class="numpad">
                 <button class="num-btn" onclick="auth.inputPin(1)">1</button>
                 <button class="num-btn" onclick="auth.inputPin(2)">2</button>
@@ -313,7 +488,6 @@
         <div id="view-gesture" class="lock-card" style="display:none;">
             <div class="lock-title" id="gestTitle">绘制图案</div>
             <div class="lock-subtitle" id="gestSub">请绘制你的解锁图案</div>
-            
             <div class="gesture-container" id="gestureArea">
                 <div class="gesture-grid">
                     <div class="gesture-point"><div class="point-inner" data-idx="0"></div></div>
@@ -335,7 +509,6 @@
         <div id="view-recovery" class="lock-card" style="display:none;">
             <div class="lock-title">😟 忘记密码了？</div>
             <div class="lock-subtitle" id="recoveryQText">回答你的安全问题</div>
-            
             <input type="text" id="recoveryAnswer" class="lock-input" placeholder="输入答案">
             <button class="welcome-btn btn-gesture" onclick="auth.checkRecovery()">验证</button>
             <div class="back-link" onclick="location.reload()">返回</div>
@@ -345,7 +518,7 @@
     <div id="toast" class="toast">提示信息</div>
 
     <div id="appContainer">
-        <h1>🌸 我的百宝箱 v7.0 🌸</h1>
+        <h1>🌸 我的百宝箱  🌸</h1>
 
         <div class="float-widget" id="floatWidget">
             <div class="float-menu" id="floatMenu">
@@ -358,6 +531,11 @@
                     <input type="text" style="width:100%;font-size:10px;padding:4px;border:1px solid #ddd;border-radius:5px;" id="musicLink" placeholder="输入mp3链接..." onchange="updateMusicSrc(this.value)">
                     <audio id="bgMusic" loop></audio>
                 </div>
+                
+                <div class="lottery-panel">
+                    <button class="lottery-btn" onclick="startLottery()">🔮 命运的抉择</button>
+                </div>
+
                 <div class="nav-panel" id="navPanel">
                     <div class="nav-title">🏷️ 快速跳转</div>
                 </div>
@@ -370,14 +548,37 @@
             <span class="search-icon">🔍</span>
         </div>
 
-        <div class="controls">
-            <button onclick="openAddModal()" class="primary-btn"><span>➕</span> 添加素材</button>
-            <button onclick="exportAllData()"><span>💾</span> 备份全部</button>
-            <button onclick="document.getElementById('importAllInput').click()"><span>📂</span> 导入备份</button>
-            <input type="file" id="importAllInput" accept=".json" onchange="importAllData(this)">
+                       <div class="layout-bar">
+            <span class="layout-label">👀 视图:</span>
+            
+            <button class="layout-btn" title="默认网格" onclick="switchLayout('default')">🩶</button>
+            <button class="layout-btn" title="长列表" onclick="switchLayout('list')">🩵</button>
+            <button class="layout-btn" title="大图模式" onclick="switchLayout('large')">🤍</button>
+            <button class="layout-btn" title="迷你模式" onclick="switchLayout('mini')">🩷</button>
         </div>
 
-        <div class="grid-container" id="gridContainer">
+              <div class="action-grid">
+            <div class="action-card primary" onclick="openAddModal()">
+                <div class="kitty-icon">🎀</div> <div>添加</div>
+            </div>
+            
+            <div class="action-card" onclick="document.getElementById('batchImgInput').click()">
+                <div class="kitty-icon">📸</div> <div>批量</div>
+                <input type="file" id="batchImgInput" accept="image/*" multiple style="display:none" onchange="handleBatchImageImport(this)">
+            </div>
+
+            <div class="action-card" onclick="exportAllData()">
+                <div class="kitty-icon">💾</div>
+                <div>备份</div>
+            </div>
+
+            <div class="action-card" onclick="document.getElementById('importAllInput').click()">
+                <div class="kitty-icon">👜</div> <div>导入</div>
+                <input type="file" id="importAllInput" accept=".json" onchange="importAllData(this)">
+            </div>
+        </div>
+
+        <div class="grid-container mode-default" id="gridContainer">
             <div class="empty-state">正在初始化数据库... 💾</div>
         </div>
     </div>
@@ -386,52 +587,10 @@
         <div class="modal">
             <button class="close-modal" onclick="closeAddModal()">×</button>
             <h2 id="modalTitle">✨ 添加新收藏</h2>
-            
-            <div class="form-group">
-                <label>💖 名字</label>
-                <input type="text" id="itemName" placeholder="给这个盒子起个名字...">
-            </div>
-
-            <div class="form-group">
-                <label>🏷️ 标签 (回车添加)</label>
-                <div class="tag-input-area" id="tagInputArea" onclick="document.getElementById('tagInput').focus()">
-                    <input type="text" id="tagInput" onkeydown="handleTagInput(event)">
-                </div>
-                <div id="suggestedTags" style="margin-top:5px; display:flex; gap:5px; flex-wrap:wrap;"></div>
-            </div>
-
-            <div class="form-group">
-                <label>📦 包含的文件与链接</label>
-                <div class="resource-list" id="resourceList">
-                    <div style="text-align:center; color:#ccc; font-size:12px; padding:20px;">暂无内容，请点击下方按钮添加</div>
-                </div>
-
-                <div class="add-btn-row">
-                    <label class="upload-area small-btn">
-                        🖼️ 加图片
-                        <input type="file" accept="image/*" multiple onchange="handleImageSelect(this)">
-                    </label>
-                    <label class="upload-area small-btn">
-                        📄 加JSON
-                        <input type="file" accept=".json,application/json" multiple onchange="handleJsonSelect(this)">
-                    </label>
-                    <button class="small-btn" onclick="openLinkInput()">🔗 加链接</button>
-                </div>
-                
-                <div id="linkInputArea" style="display:none; margin-top:10px; background:#f9f9f9; padding:10px; border-radius:10px;">
-                    <input type="text" id="newLinkName" placeholder="链接名称 (如: 作者主页)" style="margin-bottom:5px;">
-                    <input type="text" id="newLinkUrl" placeholder="网址 (http://...)" style="margin-bottom:5px;">
-                    <div style="text-align:right;">
-                        <button class="small-btn" onclick="confirmAddLink()">确定</button>
-                        <button class="small-btn" style="background:#eee; color:#666; border:none" onclick="document.getElementById('linkInputArea').style.display='none'">取消</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="modal-buttons">
-                <button onclick="closeAddModal()">取消</button>
-                <button class="primary-btn" onclick="saveItem()">💾 保存</button>
-            </div>
+            <div class="form-group"><label>💖 名字</label><input type="text" id="itemName" placeholder="给这个盒子起个名字..."></div>
+            <div class="form-group"><label>🏷️ 标签 (输入后点+号或回车)</label><div style="display:flex; align-items:center; gap:10px;"><div class="tag-input-area" id="tagInputArea" style="flex-grow:1;" onclick="document.getElementById('tagInput').focus()"><input type="text" id="tagInput" onkeydown="handleTagInput(event)"></div><button class="small-btn primary-btn" style="height:40px; width:40px; border-radius:50%; display:flex; justify-content:center; align-items:center; flex-shrink:0;" onclick="manualAddTag()">＋</button></div><div id="suggestedTags" style="margin-top:5px; display:flex; gap:5px; flex-wrap:wrap;"></div></div>
+            <div class="form-group"><label>📦 包含的文件与链接</label><div class="resource-list" id="resourceList"><div style="text-align:center; color:#ccc; font-size:12px; padding:20px;">暂无内容，请点击下方按钮添加</div></div><div class="add-btn-row"><label class="upload-area small-btn" style="flex-grow:1; text-align:center;">📂 加文件 (图片/文档/其他)<input type="file" multiple onchange="handleUniversalSelect(this)"></label><button class="small-btn" onclick="openLinkInput()">🔗 加链接</button></div><div id="linkInputArea" style="display:none; margin-top:10px; background:#f9f9f9; padding:10px; border-radius:10px;"><input type="text" id="newLinkName" placeholder="链接名称 (如: 作者主页)" style="margin-bottom:5px;"><input type="text" id="newLinkUrl" placeholder="网址 (http://...)" style="margin-bottom:5px;"><div style="text-align:right;"><button class="small-btn" onclick="confirmAddLink()">确定</button><button class="small-btn" style="background:#eee; color:#666; border:none" onclick="document.getElementById('linkInputArea').style.display='none'">取消</button></div></div></div>
+            <div class="modal-buttons"><button onclick="closeAddModal()">取消</button><button class="primary-btn" onclick="saveItem()">💾 保存</button></div>
         </div>
     </div>
 
@@ -440,63 +599,30 @@
             <button class="close-modal" onclick="closeDetailModal()">×</button>
             <h2 id="detailName" style="text-align:center; margin-bottom:5px;"></h2>
             <div id="detailTags" style="display:flex; justify-content:center; gap:5px; margin-bottom:15px;"></div>
-
-            <div id="galleryArea">
-                <div class="gallery-container">
-                    <div class="gallery-type-label" id="galleryTypeLabel">类型</div>
-                    <img id="detailImg" class="gallery-img" src="">
-                    <div class="gallery-nav nav-prev" onclick="changeGalleryImage(-1)">❮</div>
-                    <div class="gallery-nav nav-next" onclick="changeGalleryImage(1)">❯</div>
-                    
-                    <button id="setCoverBtn" class="cover-btn" onclick="setAsCover()">设为封面</button>
-                    <button class="download-img-btn" onclick="downloadCurrentGalleryImg()" title="下载此图">⬇️</button>
-                    <div style="position:absolute; bottom:10px; left:10px; background:rgba(0,0,0,0.5); color:white; padding:2px 8px; border-radius:10px; font-size:12px; pointer-events:none;">
-                        <span id="imgIndex">1</span> / <span id="imgTotal">1</span>
-                    </div>
-                </div>
-            </div>
+            <div id="galleryArea"><div class="gallery-container"><div class="gallery-type-label" id="galleryTypeLabel">类型</div><img id="detailImg" class="gallery-img" src=""><div class="gallery-nav nav-prev" onclick="changeGalleryImage(-1)">❮</div><div class="gallery-nav nav-next" onclick="changeGalleryImage(1)">❯</div><button id="setCoverBtn" class="cover-btn" onclick="setAsCover()">设为封面</button><button class="download-img-btn" onclick="downloadCurrentGalleryImg()" title="下载此图">⬇️</button><div style="position:absolute; bottom:10px; left:10px; background:rgba(0,0,0,0.5); color:white; padding:2px 8px; border-radius:10px; font-size:12px; pointer-events:none;"><span id="imgIndex">1</span> / <span id="imgTotal">1</span></div></div></div>
             <div id="noImgMsg" style="text-align:center; color:#ccc; padding:20px; display:none;">(此盒子没有图片)</div>
-
-            <div class="form-group">
-                <label>📂 盒子内容</label>
-                <div id="detailListContainer" class="detail-list"></div>
-            </div>
-
-            <div class="modal-buttons" style="justify-content: center; flex-wrap:wrap;">
-                <button class="edit-btn" onclick="openEditMode()">✏️ 编辑盒子内容</button>
-                <button onclick="deleteCurrentItem()" style="border-color: #ffcccc; color: #ff6b6b;">🗑️ 删除盒子</button>
-            </div>
+            <div class="form-group"><label>📂 盒子内容</label><div id="detailListContainer" class="detail-list"></div></div>
+            <div class="modal-buttons" style="justify-content: center; flex-wrap:wrap;"><button class="edit-btn" onclick="openEditMode()">✏️ 编辑盒子内容</button><button onclick="deleteCurrentItem()" style="border-color: #ffcccc; color: #ff6b6b;">🗑️ 删除盒子</button></div>
         </div>
     </div>
 
     <script>
-        // ================= 🔒 安全系统逻辑 (AuthSystem) =================
-        
+        // ================= 🔒 安全系统 (AuthSystem) =================
         const auth = {
-            mode: 'login', // login, setup, verify
-            type: null,    // pin, gesture
-            step: 0,       // for setup confirmation
-            tempSecret: null,
-            inputBuffer: '',
-            failCount: 0,
+            mode: 'login', type: null, step: 0, tempSecret: null, inputBuffer: '', failCount: 0,
             
             init: function() {
-                // 生成樱花
                 this.createSakura();
-                
-                // 检查是否有存储的密码
+                this.showView('view-landing');
+            },
+
+            proceedFromLanding: function() {
                 const savedType = localStorage.getItem('magic_auth_type');
                 const savedSecret = localStorage.getItem('magic_auth_secret');
-                
-                if (!savedType || !savedSecret) {
-                    this.showView('view-welcome');
-                } else {
-                    this.mode = 'login';
-                    this.type = savedType;
-                    if (this.type === 'pin') this.showView('view-pin');
-                    else this.showView('view-gesture');
-                    
-                    // 手势需要初始化Canvas监听
+                if (!savedType || !savedSecret) { this.showView('view-welcome'); } 
+                else {
+                    this.mode = 'login'; this.type = savedType;
+                    if (this.type === 'pin') this.showView('view-pin'); else this.showView('view-gesture');
                     if (this.type === 'gesture') setTimeout(() => this.initGesture(), 100);
                 }
             },
@@ -504,302 +630,111 @@
             createSakura: function() {
                 const container = document.getElementById('sakuraContainer');
                 for(let i=0; i<15; i++) {
-                    const el = document.createElement('div');
-                    el.className = 'sakura';
+                    const el = document.createElement('div'); el.className = 'sakura';
                     el.style.left = Math.random() * 100 + '%';
                     el.style.animationDuration = (Math.random() * 5 + 5) + 's';
                     el.style.animationDelay = Math.random() * 5 + 's';
                     container.appendChild(el);
                 }
             },
-
             showView: function(id) {
-                ['view-welcome', 'view-pin', 'view-gesture', 'view-setup-question', 'view-recovery'].forEach(v => {
-                    document.getElementById(v).style.display = 'none';
+                ['view-landing', 'view-welcome', 'view-pin', 'view-gesture', 'view-setup-question', 'view-recovery'].forEach(v => {
+                    const el = document.getElementById(v); if(el) el.style.display = 'none';
                 });
                 document.getElementById(id).style.display = 'block';
                 if(id === 'view-pin') this.updatePinDots();
             },
-
             toast: function(msg) {
-                const t = document.getElementById('toast');
-                t.textContent = msg; t.style.opacity = 1;
+                const t = document.getElementById('toast'); t.textContent = msg; t.style.opacity = 1;
                 setTimeout(() => t.style.opacity = 0, 2000);
             },
-
-            // --- 流程控制 ---
             startSetup: function(type) {
-                this.mode = 'setup';
-                this.type = type;
-                this.step = 1;
-                this.inputBuffer = '';
-                
+                this.mode = 'setup'; this.type = type; this.step = 1; this.inputBuffer = '';
                 if (type === 'pin') {
-                    document.getElementById('pinTitle').textContent = '设置密码';
-                    document.getElementById('pinSub').textContent = '请输入4位新密码';
-                    this.showView('view-pin');
+                    document.getElementById('pinTitle').textContent = '设置密码'; document.getElementById('pinSub').textContent = '请输入4位新密码'; this.showView('view-pin');
                 } else {
-                    document.getElementById('gestTitle').textContent = '绘制图案';
-                    document.getElementById('gestSub').textContent = '请绘制解锁图案';
-                    this.showView('view-gesture');
-                    setTimeout(() => this.initGesture(), 100);
+                    document.getElementById('gestTitle').textContent = '绘制图案'; document.getElementById('gestSub').textContent = '请绘制解锁图案'; this.showView('view-gesture'); setTimeout(() => this.initGesture(), 100);
                 }
             },
-
-            // --- 数字密码逻辑 ---
             inputPin: function(num) {
                 if (this.inputBuffer.length < 4) {
-                    this.inputBuffer += num;
-                    this.updatePinDots();
-                    if (this.inputBuffer.length === 4) {
-                        setTimeout(() => this.submitPin(), 200);
-                    }
+                    this.inputBuffer += num; this.updatePinDots();
+                    if (this.inputBuffer.length === 4) setTimeout(() => this.submitPin(), 200);
                 }
             },
-            clearPin: function() {
-                this.inputBuffer = '';
-                this.updatePinDots();
-            },
-            updatePinDots: function() {
-                const dots = document.getElementById('pinDots').children;
-                for(let i=0; i<4; i++) {
-                    if(i < this.inputBuffer.length) dots[i].classList.add('active');
-                    else dots[i].classList.remove('active');
-                }
-            },
+            clearPin: function() { this.inputBuffer = ''; this.updatePinDots(); },
+            updatePinDots: function() { const dots = document.getElementById('pinDots').children; for(let i=0; i<4; i++) { if(i < this.inputBuffer.length) dots[i].classList.add('active'); else dots[i].classList.remove('active'); } },
             submitPin: function() {
-                const val = this.inputBuffer;
-                this.inputBuffer = '';
-                this.updatePinDots();
-
+                const val = this.inputBuffer; this.inputBuffer = ''; this.updatePinDots();
                 if (this.mode === 'setup') {
-                    if (this.step === 1) {
-                        this.tempSecret = val;
-                        this.step = 2;
-                        document.getElementById('pinTitle').textContent = '再次确认';
-                        document.getElementById('pinSub').textContent = '请再次输入以确认';
-                    } else {
-                        if (val === this.tempSecret) {
-                            this.finishPasswordSetup(val);
-                        } else {
-                            this.toast('两次输入不一致，请重试');
-                            this.step = 1;
-                            document.getElementById('pinTitle').textContent = '设置密码';
-                        }
-                    }
-                } else if (this.mode === 'login') {
-                    if (val === localStorage.getItem('magic_auth_secret')) {
-                        this.unlockApp();
-                    } else {
-                        this.handleFail();
-                    }
-                }
+                    if (this.step === 1) { this.tempSecret = val; this.step = 2; document.getElementById('pinTitle').textContent = '再次确认'; document.getElementById('pinSub').textContent = '请再次输入以确认'; } 
+                    else { if (val === this.tempSecret) this.finishPasswordSetup(val); else { this.toast('两次输入不一致'); this.step = 1; document.getElementById('pinTitle').textContent = '设置密码'; } }
+                } else if (this.mode === 'login') { if (val === localStorage.getItem('magic_auth_secret')) this.unlockApp(); else this.handleFail(); }
             },
-
-            // --- 手势密码逻辑 ---
+            
             initGesture: function() {
-                const canvas = document.getElementById('gestureCanvas');
-                const ctx = canvas.getContext('2d');
+                const canvas = document.getElementById('gestureCanvas'); 
+                const ctx = canvas.getContext('2d'); 
                 const area = document.getElementById('gestureArea');
-                let isDrawing = false;
-                let path = []; // 存储点索引 [0,1,2...]
+                let isDrawing = false; let path = [];
+                canvas.width = 300; canvas.height = 300; 
 
-                const getPoint = (x, y) => {
-                    const rect = area.getBoundingClientRect();
-                    const rx = x - rect.left;
-                    const ry = y - rect.top;
-                    // 简单判定：3x3网格
-                    const col = Math.floor(rx / (300/3));
-                    const row = Math.floor(ry / (300/3));
+                const getPoint = (x, y) => { 
+                    const rect = area.getBoundingClientRect(); 
+                    const rx = x - rect.left; const ry = y - rect.top;
+                    const col = Math.floor(rx / (300/3)); const row = Math.floor(ry / (300/3));
                     if(col>=0 && col<3 && row>=0 && row<3) return row*3 + col;
-                    return -1;
+                    return -1; 
                 };
 
                 const draw = (curX, curY) => {
-                    ctx.clearRect(0, 0, 300, 300);
-                    ctx.strokeStyle = '#ffb7c5';
-                    ctx.lineWidth = 4;
-                    ctx.lineCap = 'round';
-                    ctx.lineJoin = 'round';
-                    
-                    if(path.length > 0) {
-                        ctx.beginPath();
-                        const p0 = getCenter(path[0]);
-                        ctx.moveTo(p0.x, p0.y);
-                        for(let i=1; i<path.length; i++) {
-                            const p = getCenter(path[i]);
-                            ctx.lineTo(p.x, p.y);
-                        }
-                        if(curX !== null) ctx.lineTo(curX, curY);
-                        ctx.stroke();
+                    ctx.clearRect(0, 0, 300, 300); ctx.strokeStyle = '#ffb7c5'; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+                    if(path.length > 0) { 
+                        ctx.beginPath(); const p0 = getCenter(path[0]); ctx.moveTo(p0.x, p0.y); 
+                        for(let i=1; i<path.length; i++) { const p = getCenter(path[i]); ctx.lineTo(p.x, p.y); } 
+                        if(curX !== null) ctx.lineTo(curX, curY); ctx.stroke(); 
                     }
-                    
-                    // 高亮圆点
-                    document.querySelectorAll('.point-inner').forEach((el, i) => {
-                        if(path.includes(i)) el.classList.add('active');
-                        else el.classList.remove('active');
-                    });
+                    document.querySelectorAll('.point-inner').forEach((el, i) => { if(path.includes(i)) el.classList.add('active'); else el.classList.remove('active'); });
                 };
-
-                const getCenter = (idx) => {
-                    const row = Math.floor(idx/3), col = idx%3;
-                    return { x: col*100 + 50, y: row*100 + 50 };
-                };
-
-                const start = (e) => {
-                    e.preventDefault();
-                    isDrawing = true;
-                    path = [];
-                    move(e);
-                };
-
-                const move = (e) => {
-                    if(!isDrawing) return;
-                    e.preventDefault();
-                    const touch = e.touches ? e.touches[0] : e;
-                    const rect = canvas.getBoundingClientRect();
-                    const x = touch.clientX - rect.left;
-                    const y = touch.clientY - rect.top;
-                    
-                    const idx = getPoint(touch.clientX, touch.clientY);
-                    if(idx !== -1 && !path.includes(idx)) {
-                        path.push(idx);
-                    }
-                    draw(x, y);
-                };
-
-                const end = () => {
-                    if(!isDrawing) return;
-                    isDrawing = false;
-                    draw(null, null); // 清除拖尾
-                    
-                    if(path.length < 3) {
-                        this.toast('连接的点太少啦');
-                        path = []; draw(null,null);
-                        return;
-                    }
-                    
-                    const code = path.join('');
-                    if(this.mode === 'setup') {
-                        if(this.step === 1) {
-                            this.tempSecret = code;
-                            this.step = 2;
-                            document.getElementById('gestTitle').textContent = '再次绘制';
-                            document.getElementById('gestSub').textContent = '请再次绘制以确认';
-                            document.getElementById('gestResetBtn').style.display = 'block';
-                            setTimeout(()=>{ path=[]; draw(null,null); }, 500);
-                        } else {
-                            if(code === this.tempSecret) {
-                                this.finishPasswordSetup(code);
-                            } else {
-                                this.toast('两次绘制不一致');
-                                this.step = 1;
-                                document.getElementById('gestTitle').textContent = '绘制图案';
-                                setTimeout(()=>{ path=[]; draw(null,null); }, 500);
-                            }
-                        }
-                    } else if(this.mode === 'login') {
-                        if(code === localStorage.getItem('magic_auth_secret')) {
-                            this.unlockApp();
-                        } else {
-                            this.handleFail();
-                            setTimeout(()=>{ path=[]; draw(null,null); }, 500);
-                        }
-                    }
-                };
-
-                // 绑定事件
-                canvas.addEventListener('mousedown', start);
-                canvas.addEventListener('mousemove', move);
-                document.addEventListener('mouseup', end);
-                canvas.addEventListener('touchstart', start, {passive:false});
-                canvas.addEventListener('touchmove', move, {passive:false});
-                canvas.addEventListener('touchend', end);
-
-                this.resetGesture = () => {
-                    this.step = 1; this.tempSecret = null;
-                    document.getElementById('gestTitle').textContent = '绘制图案';
-                    document.getElementById('gestSub').textContent = '请绘制解锁图案';
-                    document.getElementById('gestResetBtn').style.display = 'none';
-                    path = []; draw(null,null);
-                };
-            },
-
-            // --- 共同逻辑 ---
-            finishPasswordSetup: function(secret) {
-                // 暂时保存，跳转到安全问题
-                this.finalSecret = secret;
-                this.finalType = this.type;
-                this.showView('view-setup-question');
-            },
-
-            saveSecurityQuestion: function() {
-                const q = document.getElementById('secQuestion').value.trim();
-                const a = document.getElementById('secAnswer').value.trim();
-                if(!q || !a) { this.toast('请填写完整哦'); return; }
-
-                localStorage.setItem('magic_auth_type', this.finalType);
-                localStorage.setItem('magic_auth_secret', this.finalSecret);
-                localStorage.setItem('magic_auth_q', q);
-                localStorage.setItem('magic_auth_a', a);
+                const getCenter = (idx) => { const row = Math.floor(idx/3), col = idx%3; return { x: col*100 + 50, y: row*100 + 50 }; };
                 
-                this.toast('设置成功！下次请使用密码登录');
-                this.unlockApp();
+                const start = (e) => { e.preventDefault(); e.stopPropagation(); isDrawing = true; path = []; move(e); };
+                const move = (e) => { 
+                    if(!isDrawing) return; e.preventDefault(); e.stopPropagation();
+                    let cx, cy; if(e.touches) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; } else { cx = e.clientX; cy = e.clientY; }
+                    const rect = area.getBoundingClientRect();
+                    const idx = getPoint(cx, cy); if(idx !== -1 && !path.includes(idx)) path.push(idx); 
+                    draw(cx - rect.left, cy - rect.top); 
+                };
+                const end = (e) => { 
+                    if(!isDrawing) return; e.preventDefault(); isDrawing = false; draw(null, null); 
+                    if(path.length < 3) { this.toast('点太少啦'); path = []; draw(null,null); return; } 
+                    const code = path.join(''); 
+                    if(this.mode === 'setup') { 
+                        if(this.step === 1) { this.tempSecret = code; this.step = 2; document.getElementById('gestTitle').textContent = '再次绘制'; setTimeout(()=>{ path=[]; draw(null,null); }, 500); } 
+                        else { if(code === this.tempSecret) this.finishPasswordSetup(code); else { this.toast('不一致'); this.step = 1; document.getElementById('gestTitle').textContent = '绘制图案'; setTimeout(()=>{ path=[]; draw(null,null); }, 500); } } 
+                    } else if(this.mode === 'login') { 
+                        if(code === localStorage.getItem('magic_auth_secret')) this.unlockApp(); else { this.handleFail(); setTimeout(()=>{ path=[]; draw(null,null); }, 500); } 
+                    } 
+                };
+
+                const newCanvas = canvas.cloneNode(true); canvas.parentNode.replaceChild(newCanvas, canvas);
+                newCanvas.addEventListener('mousedown', start); newCanvas.addEventListener('touchstart', start, {passive: false});
+                window.addEventListener('mousemove', move); window.addEventListener('touchmove', move, {passive: false});
+                window.addEventListener('mouseup', end); window.addEventListener('touchend', end);
+
+                this.resetGesture = () => { this.step = 1; this.tempSecret = null; document.getElementById('gestTitle').textContent = '绘制图案'; document.getElementById('gestResetBtn').style.display = 'none'; path = []; draw(null,null); };
             },
 
-            handleFail: function() {
-                this.failCount++;
-                this.toast('密码错误');
-                document.querySelectorAll('.lock-card').forEach(c => {
-                    c.style.transform = 'translateX(10px)';
-                    setTimeout(() => c.style.transform = 'translateX(-10px)', 100);
-                    setTimeout(() => c.style.transform = 'translateX(0)', 200);
-                });
-                
-                if(this.failCount >= 3) {
-                    if(this.type==='pin') document.getElementById('pinForgotBtn').style.display='block';
-                    else document.getElementById('gestForgotBtn').style.display='block';
-                }
-            },
-
-            showRecovery: function() {
-                const q = localStorage.getItem('magic_auth_q');
-                if(!q) { this.toast('未设置安全问题，无法找回'); return; }
-                document.getElementById('recoveryQText').textContent = q;
-                this.showView('view-recovery');
-            },
-
-            checkRecovery: function() {
-                const ans = document.getElementById('recoveryAnswer').value.trim();
-                if(ans === localStorage.getItem('magic_auth_a')) {
-                    // 验证成功，清除所有密码设置，重回首页
-                    localStorage.removeItem('magic_auth_type');
-                    localStorage.removeItem('magic_auth_secret');
-                    this.toast('验证成功，请重新设置密码');
-                    setTimeout(() => location.reload(), 1000);
-                } else {
-                    this.toast('答案错误');
-                }
-            },
-
-            unlockApp: function() {
-                const lock = document.getElementById('lockScreen');
-                lock.style.transition = 'opacity 0.5s';
-                lock.style.opacity = 0;
-                setTimeout(() => {
-                    lock.style.display = 'none';
-                    document.getElementById('appContainer').style.display = 'block';
-                    // 触发原有初始化
-                    if(!window.appInitialized) {
-                        initOriginalApp();
-                        window.appInitialized = true;
-                    }
-                }, 500);
-            }
+            finishPasswordSetup: function(secret) { this.finalSecret = secret; this.finalType = this.type; this.showView('view-setup-question'); },
+            saveSecurityQuestion: function() { const q = document.getElementById('secQuestion').value.trim(); const a = document.getElementById('secAnswer').value.trim(); if(!q || !a) { this.toast('请填写完整'); return; } localStorage.setItem('magic_auth_type', this.finalType); localStorage.setItem('magic_auth_secret', this.finalSecret); localStorage.setItem('magic_auth_q', q); localStorage.setItem('magic_auth_a', a); this.toast('设置成功！'); this.unlockApp(); },
+            handleFail: function() { this.failCount++; this.toast('密码错误'); if(this.failCount >= 3) { if(this.type==='pin') document.getElementById('pinForgotBtn').style.display='block'; else document.getElementById('gestForgotBtn').style.display='block'; } },
+            showRecovery: function() { const q = localStorage.getItem('magic_auth_q'); if(!q) { this.toast('未设置问题'); return; } document.getElementById('recoveryQText').textContent = q; this.showView('view-recovery'); },
+            checkRecovery: function() { if(document.getElementById('recoveryAnswer').value.trim() === localStorage.getItem('magic_auth_a')) { localStorage.removeItem('magic_auth_type'); localStorage.removeItem('magic_auth_secret'); this.toast('验证成功，请重设'); setTimeout(() => location.reload(), 1000); } else this.toast('错误'); },
+            unlockApp: function() { document.getElementById('lockScreen').style.transition = 'opacity 0.5s'; document.getElementById('lockScreen').style.opacity = 0; setTimeout(() => { document.getElementById('lockScreen').style.display = 'none'; document.getElementById('appContainer').style.display = 'block'; if(!window.appInitialized) { initOriginalApp(); window.appInitialized = true; } }, 500); }
         };
 
-
-        // ================= 📱 原有应用逻辑 (封装) =================
+        // ================= 📱 应用核心逻辑 =================
         let items = [];
         let draftResources = []; 
         let currentTags = [];
@@ -807,357 +742,203 @@
         let editingIndex = -1;
         let viewingIndex = -1;
         let galleryIndex = 0;
+        let currentLuckyIndex = -1;
 
-        const TYPES = ['默认', '人物卡', '世界书', 'QR码', '预设', '预设正则', '插件'];
+        const TYPES = ['默认', '人物卡', '世界书', 'QR码', '预设', '预设正则', '插件', '自定义'];
         const PLACEHOLDER_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23ffe6eb'/%3E%3Ctext x='50' y='50' fill='%23ffb7c5' text-anchor='middle' dy='.3em'%3E无图%3C/text%3E%3C/svg%3E";
         const DEFAULT_MUSIC = "https://files.catbox.moe/btptsb.mp3";
         const DB_NAME = 'MyMagicDB';
         const STORE_NAME = 'items';
         let db;
 
-        // 页面加载入口
-        window.onload = function() {
-            auth.init(); // 先启动安全系统
-        };
+        window.onload = function() { auth.init(); };
 
-        // 只有解锁后才调用此函数
-        function initOriginalApp() {
-            initDB().then(() => {
-                loadFromDB();
-                migrateFromLocalStorage();
-            });
-            initMusic();
-            initDraggable();
-        }
-
-        function initDB() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, 1);
-                request.onerror = (e) => { console.error("Database error", e); reject(); };
-                request.onupgradeneeded = (e) => {
-                    const db = e.target.result;
-                    if (!db.objectStoreNames.contains(STORE_NAME)) {
-                        db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
-                    }
-                };
-                request.onsuccess = (e) => {
-                    db = e.target.result;
-                    resolve();
-                };
-            });
-        }
-
-        async function loadFromDB() {
-            const tx = db.transaction(STORE_NAME, 'readonly');
-            const store = tx.objectStore(STORE_NAME);
-            const request = store.getAll();
-            request.onsuccess = () => {
-                items = request.result.sort((a, b) => new Date(b.date) - new Date(a.date));
-                renderGrid(items);
-                renderNavPanel();
-            };
-        }
-
-        async function saveItemToDB(item) {
-            return new Promise((resolve, reject) => {
-                const tx = db.transaction(STORE_NAME, 'readwrite');
-                const store = tx.objectStore(STORE_NAME);
-                let req;
-                if(item.id) req = store.put(item); 
-                else req = store.add(item); 
-                req.onsuccess = () => { resolve(req.result); };
-                req.onerror = () => { alert('保存失败，可能是文件太大了？'); reject(); };
-            });
-        }
-
-        async function deleteItemFromDB(id) {
-            const tx = db.transaction(STORE_NAME, 'readwrite');
-            const store = tx.objectStore(STORE_NAME);
-            store.delete(id);
-            return new Promise(resolve => tx.oncomplete = resolve);
-        }
-
-        function migrateFromLocalStorage() {
-            const oldData = localStorage.getItem('my_magic_collection_v3');
-            if(oldData) {
-                try {
-                    const parsed = JSON.parse(oldData);
-                    if(parsed.length > 0) {
-                        if(confirm('发现旧版本数据，是否迁移到无限空间？(迁移后旧数据会从缓存清空)')) {
-                            const tx = db.transaction(STORE_NAME, 'readwrite');
-                            const store = tx.objectStore(STORE_NAME);
-                            parsed.forEach(item => { delete item.id; store.add(item); });
-                            tx.oncomplete = () => {
-                                alert('迁移成功！享受无限空间吧！✨');
-                                localStorage.removeItem('my_magic_collection_v3');
-                                loadFromDB();
-                            };
-                        }
-                    }
-                } catch(e) {}
-            }
-        }
+        function initOriginalApp() { initDB().then(() => { loadFromDB(); migrateFromLocalStorage(); initLayout(); }); initMusic(); initDraggable(); }
+        function initDB() { return new Promise((resolve, reject) => { const request = indexedDB.open(DB_NAME, 1); request.onerror = () => reject(); request.onupgradeneeded = (e) => { const db = e.target.result; if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true }); }; request.onsuccess = (e) => { db = e.target.result; resolve(); }; }); }
+        async function loadFromDB() { const tx = db.transaction(STORE_NAME, 'readonly'); const req = tx.objectStore(STORE_NAME).getAll(); req.onsuccess = () => { items = req.result.sort((a, b) => new Date(b.date) - new Date(a.date)); renderGrid(items); renderNavPanel(); }; }
+        async function saveItemToDB(item) { return new Promise((resolve, reject) => { const tx = db.transaction(STORE_NAME, 'readwrite'); const store = tx.objectStore(STORE_NAME); const req = item.id ? store.put(item) : store.add(item); req.onsuccess = () => resolve(req.result); req.onerror = () => { alert('保存失败，文件太大？'); reject(); }; }); }
+        async function deleteItemFromDB(id) { const tx = db.transaction(STORE_NAME, 'readwrite'); tx.objectStore(STORE_NAME).delete(id); return new Promise(resolve => tx.oncomplete = resolve); }
+        function migrateFromLocalStorage() { const old = localStorage.getItem('my_magic_collection_v3'); if(old) { try { const p = JSON.parse(old); if(p.length > 0 && confirm('发现旧数据，迁移吗？')) { const tx = db.transaction(STORE_NAME, 'readwrite'); p.forEach(i => { delete i.id; tx.objectStore(STORE_NAME).add(i); }); tx.oncomplete = () => { alert('迁移成功！'); localStorage.removeItem('my_magic_collection_v3'); loadFromDB(); }; } } catch(e){} } }
 
         function renderGrid(dataList) {
-            const container = document.getElementById('gridContainer');
-            container.innerHTML = '';
+            const container = document.getElementById('gridContainer'); container.innerHTML = '';
             if (dataList.length === 0) { container.innerHTML = '<div class="empty-state">空空的...快去添加吧！</div>'; return; }
-            
             dataList.forEach((item) => {
                 const realIndex = items.indexOf(item);
-                const card = document.createElement('div'); card.className = 'card';
-                card.onclick = () => openDetailModal(realIndex);
-
+                const card = document.createElement('div'); card.className = 'card'; card.onclick = () => openDetailModal(realIndex);
                 const images = item.resources.filter(r => r.type === 'image');
-                let coverSrc = PLACEHOLDER_IMG;
-                if (images.length > 0) {
-                    let idx = item.coverIndex || 0;
-                    if (idx >= images.length) idx = 0;
-                    coverSrc = images[idx].content;
-                }
-
-                const imgWrapper = document.createElement('div'); imgWrapper.className = 'card-img-wrapper';
-                const img = document.createElement('img'); img.src = coverSrc;
-                imgWrapper.appendChild(img);
-
-                const indicators = document.createElement('div'); indicators.className = 'content-indicators';
-                const typeCounts = {};
-                item.resources.forEach(r => {
-                    let t = r.subType; if(r.type === 'link') t = '链接';
-                    typeCounts[t] = (typeCounts[t] || 0) + 1;
-                });
-                Object.keys(typeCounts).forEach(k => {
-                    if(k !== '默认') {
-                        const ind = document.createElement('div'); ind.className = 'indicator';
-                        ind.textContent = `${k} ${typeCounts[k]}`; indicators.appendChild(ind);
-                    }
-                });
-                imgWrapper.appendChild(indicators);
-
+                let coverSrc = PLACEHOLDER_IMG; if (images.length > 0) coverSrc = images[Math.min(item.coverIndex||0, images.length-1)].content;
+                const imgWrapper = document.createElement('div'); imgWrapper.className = 'card-img-wrapper'; const img = document.createElement('img'); img.src = coverSrc; imgWrapper.appendChild(img);
                 const content = document.createElement('div'); content.className = 'card-content';
                 const title = document.createElement('h3'); title.className = 'card-title'; title.textContent = item.name;
-                content.appendChild(title);
-                const tagsDiv = document.createElement('div'); tagsDiv.className = 'tags-container';
-                (item.tags||[]).forEach(t => {
-                    const span = document.createElement('span'); span.className = 'tag-pill'; span.textContent = t;
-                    tagsDiv.appendChild(span);
-                });
-                content.appendChild(tagsDiv);
+                content.appendChild(title); const tagsDiv = document.createElement('div'); tagsDiv.className = 'tags-container'; (item.tags||[]).forEach(t => { const span = document.createElement('span'); span.className = 'tag-pill'; span.textContent = t; tagsDiv.appendChild(span); }); content.appendChild(tagsDiv);
                 card.appendChild(imgWrapper); card.appendChild(content); container.appendChild(card);
             });
         }
 
-        function resetAddModal() {
-            isEditing = false; editingIndex = -1;
-            document.getElementById('modalTitle').textContent = '✨ 添加新收藏';
-            document.getElementById('itemName').value = '';
-            document.getElementById('tagInput').value = '';
-            document.getElementById('linkInputArea').style.display = 'none';
-            draftResources = []; currentTags = [];
-            renderTagsInput(); renderResourceList(); renderSuggestTags();
+        function switchLayout(mode) {
+            const c = document.getElementById('gridContainer');
+            c.className = 'grid-container'; // reset
+            c.classList.add('mode-' + mode);
+            
+            document.querySelectorAll('.layout-btn').forEach(btn => btn.classList.remove('active'));
+            if(mode==='default') document.querySelector('.layout-btn[title="默认网格"]').classList.add('active');
+            if(mode==='list') document.querySelector('.layout-btn[title="长列表"]').classList.add('active');
+            if(mode==='large') document.querySelector('.layout-btn[title="大图模式"]').classList.add('active');
+            if(mode==='mini') document.querySelector('.layout-btn[title="迷你模式"]').classList.add('active');
+
+            localStorage.setItem('my_magic_layout', mode);
+            auth.toast('视图切换成功 ✨');
         }
 
+        function initLayout() {
+            const mode = localStorage.getItem('my_magic_layout') || 'default';
+            switchLayout(mode);
+        }
+
+        // --- 抽签逻辑 ---
+        function startLottery() {
+            if(items.length === 0) { auth.toast('盒子是空的怎么抽呀~'); return; }
+            document.getElementById('floatMenu').classList.remove('active');
+            const overlay = document.getElementById('lotteryOverlay');
+            const gift = document.getElementById('magicGift');
+            const result = document.getElementById('lotteryResult');
+            overlay.classList.add('active'); result.style.display = 'none'; gift.style.display = 'block'; gift.classList.add('shaking');
+            const luckyIndex = Math.floor(Math.random() * items.length);
+            currentLuckyIndex = luckyIndex;
+            const item = items[luckyIndex];
+            document.getElementById('lotteryName').textContent = item.name;
+            const images = item.resources.filter(r => r.type === 'image');
+            let coverSrc = PLACEHOLDER_IMG; 
+            if (images.length > 0) coverSrc = images[Math.min(item.coverIndex||0, images.length-1)].content;
+            document.getElementById('lotteryImg').src = coverSrc;
+            setTimeout(() => { gift.classList.remove('shaking'); gift.style.display = 'none'; result.style.display = 'flex'; }, 1500);
+        }
+        function closeLottery() { document.getElementById('lotteryOverlay').classList.remove('active'); }
+        function goToLotteryItem() { closeLottery(); if(currentLuckyIndex !== -1) setTimeout(() => openDetailModal(currentLuckyIndex), 300); }
+
+        // --- 批量逻辑 ---
+        async function handleBatchImageImport(input) {
+            const files = Array.from(input.files);
+            if (files.length === 0) return;
+            auth.toast(`正在全力导入 ${files.length} 张图片，稍等哦...`);
+            let count = 0;
+            for (let f of files) {
+                const base64 = await readFile(f);
+                const name = f.name.replace(/\.[^/.]+$/, ""); 
+                const newItem = { name: name, tags: ['待整理'], resources: [{ type: 'image', subType: '默认', name: f.name, content: base64 }], coverIndex: 0, date: new Date().toISOString() };
+                try { await saveItemToDB(newItem); count++; } catch(e) { console.error(e); }
+            }
+            loadFromDB();
+            auth.toast(`太棒了！成功生成了 ${count} 个新盒子！✨`);
+            input.value = '';
+        }
+
+        // --- CRUD & UI Helpers ---
+        function resetAddModal() { isEditing = false; editingIndex = -1; document.getElementById('modalTitle').textContent = '✨ 添加新收藏'; document.getElementById('itemName').value = ''; document.getElementById('tagInput').value = ''; document.getElementById('linkInputArea').style.display = 'none'; draftResources = []; currentTags = []; renderTagsInput(); renderResourceList(); renderSuggestTags(); }
         function openAddModal() { resetAddModal(); document.getElementById('addModal').classList.add('active'); }
-
-        function openEditMode() {
-            if (viewingIndex === -1) return;
-            isEditing = true; editingIndex = viewingIndex;
-            const item = items[editingIndex];
-            document.getElementById('modalTitle').textContent = '✏️ 编辑盒子内容';
-            document.getElementById('itemName').value = item.name;
-            currentTags = [...(item.tags || [])];
-            draftResources = JSON.parse(JSON.stringify(item.resources));
-            renderTagsInput(); renderResourceList(); renderSuggestTags();
-            document.getElementById('detailModal').classList.remove('active'); 
-            document.getElementById('addModal').classList.add('active');       
-        }
-
+        function openEditMode() { if (viewingIndex === -1) return; isEditing = true; editingIndex = viewingIndex; const item = items[editingIndex]; document.getElementById('modalTitle').textContent = '✏️ 编辑盒子内容'; document.getElementById('itemName').value = item.name; currentTags = [...(item.tags || [])]; draftResources = JSON.parse(JSON.stringify(item.resources)); renderTagsInput(); renderResourceList(); renderSuggestTags(); document.getElementById('detailModal').classList.remove('active'); document.getElementById('addModal').classList.add('active'); }
+        
         function renderResourceList() {
             const list = document.getElementById('resourceList'); list.innerHTML = '';
             if(draftResources.length === 0) { list.innerHTML = '<div style="text-align:center; color:#ccc; font-size:12px; padding:20px;">暂无内容</div>'; return; }
             draftResources.forEach((res, idx) => {
                 const item = document.createElement('div'); item.className = 'resource-item';
-                let previewHtml = '';
-                if (res.type === 'image') previewHtml = `<img src="${res.content}" style="width:100%;height:100%;object-fit:cover">`;
-                else if (res.type === 'json') previewHtml = '📄';
-                else if (res.type === 'link') previewHtml = '🔗';
-                
-                let selectHtml = '';
-                if (res.type !== 'link') {
-                    selectHtml = `<select class="resource-type-select" onchange="updateResourceType(${idx}, this.value)">`;
-                    TYPES.forEach(t => { selectHtml += `<option value="${t}" ${res.subType === t ? 'selected' : ''}>${t}</option>`; });
-                    selectHtml += `</select>`;
-                } else { selectHtml = `<span style="font-size:11px;color:#aaa">链接</span>`; }
+                let p = '';
+                if (res.type === 'image') p = `<img src="${res.content}" style="width:100%;height:100%;object-fit:cover">`;
+                else if (res.type === 'json') p = '📄';
+                else if (res.type === 'link') p = '🔗';
+                else p = '📎';
 
-                item.innerHTML = `<div class="resource-preview">${previewHtml}</div><div class="resource-info"><div class="resource-name" title="${res.name}">${res.name}</div>${selectHtml}</div><button class="btn-remove" onclick="removeDraftResource(${idx})">×</button>`;
+                const isCustom = !TYPES.includes(res.subType) || res.subType === '自定义';
+                const selectValue = isCustom ? '自定义' : res.subType;
+                const customInputValue = (isCustom && res.subType !== '自定义') ? res.subType : '';
+                const customDisplay = isCustom ? 'inline-block' : 'none';
+
+                let controlsHtml = '';
+                if (res.type !== 'link') {
+                    let options = '';
+                    TYPES.forEach(t => { options += `<option value="${t}" ${selectValue === t ? 'selected' : ''}>${t}</option>`; });
+                    controlsHtml = `<div class="resource-controls"><select class="resource-type-select" onchange="handleTypeChange(${idx}, this.value)">${options}</select><input type="text" class="custom-type-input" style="display:${customDisplay}" placeholder="输入类型" value="${customInputValue}" onchange="updateCustomType(${idx}, this.value)"></div>`;
+                } else {
+                    controlsHtml = `<span style="font-size:11px;color:#aaa">链接</span>`;
+                }
+                item.innerHTML = `<div class="resource-preview">${p}</div><div class="resource-info"><input type="text" class="resource-name-input" value="${res.name}" onchange="updateResourceName(${idx}, this.value)" placeholder="请输入文件名称">${controlsHtml}</div><button class="btn-remove" onclick="removeDraftResource(${idx})">×</button>`;
                 list.appendChild(item);
             });
         }
-        function updateResourceType(idx, val) { draftResources[idx].subType = val; }
+
+        function updateResourceName(idx, val) { draftResources[idx].name = val; }
+        function handleTypeChange(idx, val) { if (val === '自定义') { draftResources[idx].subType = '自定义'; } else { draftResources[idx].subType = val; } renderResourceList(); }
+        function updateCustomType(idx, val) { draftResources[idx].subType = val; }
         function removeDraftResource(idx) { draftResources.splice(idx, 1); renderResourceList(); }
-        async function handleImageSelect(input) {
+        
+        async function handleUniversalSelect(input) {
             const files = Array.from(input.files);
-            for(let f of files) { const base64 = await readFile(f); draftResources.push({ type: 'image', subType: '默认', name: f.name, content: base64 }); }
-            renderResourceList(); input.value = '';
+            for(let f of files) {
+                if (f.type.startsWith('image/')) {
+                    const b = await readFile(f);
+                    draftResources.push({ type: 'image', subType: '默认', name: f.name, content: b });
+                } else if (f.type === 'application/json' || f.name.endsWith('.json')) {
+                    const t = await readFileText(f);
+                    draftResources.push({ type: 'json', subType: '默认', name: f.name, content: t });
+                } else {
+                    const b = await readFile(f);
+                    draftResources.push({ type: 'file', subType: '附件', name: f.name, content: b });
+                }
+            }
+            renderResourceList();
+            input.value = '';
         }
-        async function handleJsonSelect(input) {
-            const files = Array.from(input.files);
-            for(let f of files) { const text = await readFileText(f); draftResources.push({ type: 'json', subType: '默认', name: f.name, content: text }); }
-            renderResourceList(); input.value = '';
-        }
+
         function openLinkInput() { document.getElementById('linkInputArea').style.display = 'block'; }
-        function confirmAddLink() {
-            const name = document.getElementById('newLinkName').value.trim(); const url = document.getElementById('newLinkUrl').value.trim();
-            if(name && url) {
-                draftResources.push({ type: 'link', subType: 'link', name: name, content: url });
-                renderResourceList();
-                document.getElementById('newLinkName').value = ''; document.getElementById('newLinkUrl').value = ''; document.getElementById('linkInputArea').style.display = 'none';
-            } else { alert('请输入名称和网址'); }
-        }
-
-        async function saveItem() {
-            const name = document.getElementById('itemName').value.trim();
-            if (!name) { alert('名字不能为空'); return; }
-            if (draftResources.length === 0) { alert('盒子不能为空哦'); return; }
+        function confirmAddLink() { const n = document.getElementById('newLinkName').value.trim(), u = document.getElementById('newLinkUrl').value.trim(); if(n && u) { draftResources.push({ type: 'link', subType: 'link', name: n, content: u }); renderResourceList(); document.getElementById('newLinkName').value = ''; document.getElementById('newLinkUrl').value = ''; document.getElementById('linkInputArea').style.display = 'none'; } else alert('请输入名称和网址'); }
+        async function saveItem() { const n = document.getElementById('itemName').value.trim(); if (!n) { alert('名字不能为空'); return; } if (draftResources.length === 0) { alert('盒子不能为空'); return; } const d = { name: n, tags: [...currentTags], resources: draftResources, coverIndex: 0, date: new Date().toISOString() }; if (isEditing) { d.id = items[editingIndex].id; d.coverIndex = items[editingIndex].coverIndex; } await saveItemToDB(d); loadFromDB(); handleSearch(); closeAddModal(); }
+        
+        function openDetailModal(index) { 
+            viewingIndex = index; const item = items[index]; document.getElementById('detailName').textContent = item.name; const tagsBox = document.getElementById('detailTags'); tagsBox.innerHTML = ''; (item.tags||[]).forEach(t => { const s = document.createElement('span'); s.className='tag-pill'; s.textContent=t; tagsBox.appendChild(s); }); const images = item.resources.filter(r => r.type === 'image'); if(images.length === 0) { document.getElementById('galleryArea').style.display = 'none'; document.getElementById('noImgMsg').style.display = 'block'; } else { document.getElementById('galleryArea').style.display = 'block'; document.getElementById('noImgMsg').style.display = 'none'; galleryIndex = Math.min(item.coverIndex||0, images.length-1); updateGalleryUI(images); } 
             
-            const itemData = { 
-                name: name, 
-                tags: [...currentTags], 
-                resources: draftResources, 
-                coverIndex: 0, 
-                date: new Date().toISOString() 
-            };
-
-            if (isEditing) {
-                const oldItem = items[editingIndex];
-                itemData.id = oldItem.id;
-                itemData.coverIndex = oldItem.coverIndex;
-            }
-
-            await saveItemToDB(itemData);
-            loadFromDB(); handleSearch(); closeAddModal();
+            const listContainer = document.getElementById('detailListContainer'); listContainer.innerHTML = ''; 
+            item.resources.forEach((res, i) => { 
+                const row = document.createElement('div'); row.className = 'detail-item'; 
+                let icon = '📄', btn = '', lbl = res.subType; 
+                if (res.type === 'image') { icon = '🖼️'; btn = `<span class="action-link" onclick="downloadResource(${i})">下载</span>`; } 
+                else if (res.type === 'json') { icon = '📄'; btn = `<span class="action-link" onclick="downloadResource(${i})">下载</span>`; } 
+                else if (res.type === 'link') { icon = '🔗'; lbl = '链接'; btn = `<a class="action-link" href="${res.content}" target="_blank">打开</a>`; } 
+                else { icon = '📎'; lbl = '附件'; btn = `<span class="action-link" onclick="downloadResource(${i})">下载</span>`; } 
+                row.innerHTML = `<div style="display:flex;align-items:center;min-width:0;"><span class="detail-item-type">${lbl}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${icon} ${res.name}</span></div><div style="flex-shrink:0;margin-left:10px;">${btn}</div>`; listContainer.appendChild(row); 
+            }); 
+            document.getElementById('detailModal').classList.add('active'); 
         }
 
-        function openDetailModal(index) {
-            viewingIndex = index; const item = items[index];
-            document.getElementById('detailName').textContent = item.name;
-            const tagsBox = document.getElementById('detailTags'); tagsBox.innerHTML = '';
-            (item.tags||[]).forEach(t => { const s = document.createElement('span'); s.className='tag-pill'; s.textContent=t; tagsBox.appendChild(s); });
-
-            const images = item.resources.filter(r => r.type === 'image');
-            if(images.length === 0) { document.getElementById('galleryArea').style.display = 'none'; document.getElementById('noImgMsg').style.display = 'block'; }
-            else {
-                document.getElementById('galleryArea').style.display = 'block'; document.getElementById('noImgMsg').style.display = 'none';
-                galleryIndex = item.coverIndex || 0;
-                if(galleryIndex >= images.length) galleryIndex = 0;
-                updateGalleryUI(images);
-            }
-
-            const listContainer = document.getElementById('detailListContainer'); listContainer.innerHTML = '';
-            item.resources.forEach((res, i) => {
-                const row = document.createElement('div'); row.className = 'detail-item';
-                let icon = '📄', actionBtn = '', typeLabel = res.subType;
-                
-                if (res.type === 'image') { icon = '🖼️'; actionBtn = `<span class="action-link" onclick="downloadResource(${i})">下载</span>`; } 
-                else if (res.type === 'json') { icon = '📄'; actionBtn = `<span class="action-link" onclick="downloadResource(${i})">下载</span>`; }
-                else if (res.type === 'link') { icon = '🔗'; typeLabel = '链接'; actionBtn = `<a class="action-link" href="${res.content}" target="_blank">打开</a>`; }
-                
-                row.innerHTML = `<div style="display:flex;align-items:center;min-width:0;"><span class="detail-item-type">${typeLabel}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${icon} ${res.name}</span></div><div style="flex-shrink:0;margin-left:10px;">${actionBtn}</div>`;
-                listContainer.appendChild(row);
-            });
-            document.getElementById('detailModal').classList.add('active');
-        }
-
-        function updateGalleryUI(images) {
-            const imgEl = document.getElementById('detailImg'); const typeLabel = document.getElementById('galleryTypeLabel');
-            const curImg = images[galleryIndex]; imgEl.src = curImg.content; typeLabel.textContent = curImg.subType;
-            document.getElementById('imgIndex').textContent = galleryIndex + 1; document.getElementById('imgTotal').textContent = images.length;
-            const coverBtn = document.getElementById('setCoverBtn');
-            if(galleryIndex === (items[viewingIndex].coverIndex || 0)) { coverBtn.textContent = '当前封面'; coverBtn.classList.add('is-cover'); }
-            else { coverBtn.textContent = '设为封面'; coverBtn.classList.remove('is-cover'); }
-        }
-        function changeGalleryImage(d) {
-            const images = items[viewingIndex].resources.filter(r => r.type === 'image'); if(images.length === 0) return;
-            galleryIndex += d; if(galleryIndex >= images.length) galleryIndex = 0; if(galleryIndex < 0) galleryIndex = images.length - 1;
-            updateGalleryUI(images);
-        }
-        async function setAsCover() {
-            if(viewingIndex === -1) return; 
-            const item = items[viewingIndex];
-            item.coverIndex = galleryIndex;
-            await saveItemToDB(item); 
-            const images = item.resources.filter(r => r.type === 'image'); 
-            updateGalleryUI(images); loadFromDB(); 
-        }
-        function downloadCurrentGalleryImg() {
-            const images = items[viewingIndex].resources.filter(r => r.type === 'image'); if(images.length === 0) return;
-            const cur = images[galleryIndex]; downloadFile(cur.name, cur.content);
-        }
-        function downloadResource(resIndex) {
-            const res = items[viewingIndex].resources[resIndex]; if(res.type === 'link') return; downloadFile(res.name, res.content);
-        }
-
-        function downloadFile(name, content) {
-            const a = document.createElement('a');
-            if (content.startsWith('data:')) {
-                a.href = content;
-            } else {
-                const blob = new Blob([content], {type: 'application/json'});
-                a.href = URL.createObjectURL(blob);
-            }
-            a.download = name;
-            document.body.appendChild(a); a.click(); document.body.removeChild(a);
-            if (!content.startsWith('data:')) URL.revokeObjectURL(a.href);
-        }
-
+        function updateGalleryUI(images) { const imgEl = document.getElementById('detailImg'); const curImg = images[galleryIndex]; imgEl.src = curImg.content; document.getElementById('galleryTypeLabel').textContent = curImg.subType; document.getElementById('imgIndex').textContent = galleryIndex + 1; document.getElementById('imgTotal').textContent = images.length; const cb = document.getElementById('setCoverBtn'); if(galleryIndex === (items[viewingIndex].coverIndex || 0)) { cb.textContent = '当前封面'; cb.classList.add('is-cover'); } else { cb.textContent = '设为封面'; cb.classList.remove('is-cover'); } }
+        function changeGalleryImage(d) { const images = items[viewingIndex].resources.filter(r => r.type === 'image'); if(images.length === 0) return; galleryIndex += d; if(galleryIndex >= images.length) galleryIndex = 0; if(galleryIndex < 0) galleryIndex = images.length - 1; updateGalleryUI(images); }
+        async function setAsCover() { if(viewingIndex === -1) return; const item = items[viewingIndex]; item.coverIndex = galleryIndex; await saveItemToDB(item); const images = item.resources.filter(r => r.type === 'image'); updateGalleryUI(images); loadFromDB(); }
+        function downloadCurrentGalleryImg() { const images = items[viewingIndex].resources.filter(r => r.type === 'image'); if(images.length === 0) return; const cur = images[galleryIndex]; downloadFile(cur.name, cur.content); }
+        function downloadResource(resIndex) { const res = items[viewingIndex].resources[resIndex]; if(res.type === 'link') return; downloadFile(res.name, res.content); }
+        function downloadFile(name, content) { const a = document.createElement('a'); if (content.startsWith('data:')) a.href = content; else { const blob = new Blob([content], {type: 'application/json'}); a.href = URL.createObjectURL(blob); } a.download = name; document.body.appendChild(a); a.click(); document.body.removeChild(a); if (!content.startsWith('data:')) URL.revokeObjectURL(a.href); }
         function readFile(file) { return new Promise(resolve => { const r = new FileReader(); r.onload = e => resolve(e.target.result); r.readAsDataURL(file); }); }
         function readFileText(file) { return new Promise(resolve => { const r = new FileReader(); r.onload = e => resolve(e.target.result); r.readAsText(file); }); }
         
-        function handleTagInput(e) { if(e.key==='Enter'){ e.preventDefault(); const v=e.target.value.trim(); if(v && !currentTags.includes(v)) { currentTags.push(v); e.target.value=''; renderTagsInput(); } } if(e.key==='Backspace' && !e.target.value) { currentTags.pop(); renderTagsInput(); } }
+        function handleTagInput(e) { 
+            if(e.key==='Enter'){ e.preventDefault(); manualAddTag(); } 
+            if(e.key==='Backspace' && !e.target.value) { currentTags.pop(); renderTagsInput(); } 
+        }
+        function manualAddTag() {
+            const el = document.getElementById('tagInput');
+            const v = el.value.trim();
+            if(v && !currentTags.includes(v)) { currentTags.push(v); el.value=''; renderTagsInput(); }
+            el.focus(); 
+        }
+
         function renderTagsInput() { const area=document.getElementById('tagInputArea'); const inp=document.getElementById('tagInput'); Array.from(area.children).forEach(c=>c!==inp && area.removeChild(c)); currentTags.forEach((t,i)=>{ const d=document.createElement('div'); d.className='tag-chip'; d.innerHTML=`${t} <span onclick="currentTags.splice(${i},1);renderTagsInput()" style="cursor:pointer">×</span>`; area.insertBefore(d,inp); }); }
         function renderSuggestTags() { const all=new Set(); items.forEach(i=>(i.tags||[]).forEach(t=>all.add(t))); const box=document.getElementById('suggestedTags'); box.innerHTML=''; all.forEach(t=>{ const d=document.createElement('div'); d.className='tag-chip'; d.style.background='#f0f0f0'; d.style.color='#666'; d.style.cursor='pointer'; d.textContent=t; d.onclick=()=>{if(!currentTags.includes(t)){currentTags.push(t);renderTagsInput();}}; box.appendChild(d); }); }
         function handleSearch(){ const q=document.getElementById('searchInput').value.toLowerCase(); const f=items.filter(i=>i.name.toLowerCase().includes(q)||(i.tags||[]).some(t=>t.toLowerCase().includes(q))); renderGrid(f); }
         function closeAddModal() { document.getElementById('addModal').classList.remove('active'); }
         function closeDetailModal() { document.getElementById('detailModal').classList.remove('active'); viewingIndex=-1; }
-        
-        async function deleteCurrentItem() { 
-            if(confirm('确定删除吗？')) { 
-                const id = items[viewingIndex].id;
-                await deleteItemFromDB(id);
-                loadFromDB(); closeDetailModal(); 
-            } 
-        }
-
-        function exportAllData() { 
-            const tx = db.transaction(STORE_NAME, 'readonly');
-            const store = tx.objectStore(STORE_NAME);
-            const req = store.getAll();
-            req.onsuccess = () => {
-                const blob = new Blob([JSON.stringify(req.result)], {type:'application/json'}); 
-                const a = document.createElement('a'); 
-                a.href = URL.createObjectURL(blob); 
-                a.download = `备份_${new Date().toISOString().slice(0,10)}.json`; 
-                document.body.appendChild(a); a.click(); document.body.removeChild(a);
-            }
-        }
-        
-        function importAllData(el) { 
-            const file = el.files[0]; if(!file) return; 
-            const r = new FileReader(); 
-            r.onload = e => { 
-                try { 
-                    const imported = JSON.parse(e.target.result); 
-                    if(Array.isArray(imported)) {
-                        const tx = db.transaction(STORE_NAME, 'readwrite');
-                        const store = tx.objectStore(STORE_NAME);
-                        imported.forEach(item => { delete item.id; store.add(item); }); 
-                        tx.oncomplete = () => { loadFromDB(); alert('导入成功！'); };
-                    }
-                } catch{ alert('文件格式错误'); } 
-            }; 
-            r.readAsText(file); 
-        }
-        
+        async function deleteCurrentItem() { if(confirm('确定删除吗？')) { const id = items[viewingIndex].id; await deleteItemFromDB(id); loadFromDB(); closeDetailModal(); } }
+        function exportAllData() { const tx = db.transaction(STORE_NAME, 'readonly'); const req = tx.objectStore(STORE_NAME).getAll(); req.onsuccess = () => { const blob = new Blob([JSON.stringify(req.result)], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `备份_${new Date().toISOString().slice(0,10)}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a); } }
+        function importAllData(el) { const file = el.files[0]; if(!file) return; const r = new FileReader(); r.onload = e => { try { const imported = JSON.parse(e.target.result); if(Array.isArray(imported)) { const tx = db.transaction(STORE_NAME, 'readwrite'); const store = tx.objectStore(STORE_NAME); imported.forEach(item => { delete item.id; store.add(item); }); tx.oncomplete = () => { loadFromDB(); alert('导入成功！'); }; } } catch{ alert('文件格式错误'); } }; r.readAsText(file); }
         function initMusic() { const link = localStorage.getItem('my_bgm_link') || DEFAULT_MUSIC; const audio = document.getElementById('bgMusic'); audio.src = link; audio.volume = 0.5; document.getElementById('musicLink').value = link; }
         function toggleMusic() { const a=document.getElementById('bgMusic'); const b=document.getElementById('playBtn'); if(a.paused){a.play();b.textContent='⏸';}else{a.pause();b.textContent='▶';} }
         function changeVolume(s) { document.getElementById('bgMusic').volume=s.value; }
@@ -1169,18 +950,8 @@
             const w=document.getElementById('floatWidget'), b=document.getElementById('floatBtn'), m=document.getElementById('floatMenu');
             let isDragging=false, startX, startY, initialLeft, initialTop;
             b.addEventListener('mousedown', s); b.addEventListener('touchstart', s, {passive:false});
-            function s(e) { 
-                if(e.target.closest('.float-menu'))return; isDragging=false; 
-                const c=e.type.includes('mouse')?e:e.touches[0]; startX=c.clientX; startY=c.clientY; 
-                const r=w.getBoundingClientRect(); initialLeft=r.left; initialTop=r.top;
-                w.style.left=initialLeft+'px'; w.style.top=initialTop+'px'; w.style.bottom='auto'; w.style.right='auto';
-                if(e.type.includes('mouse')) { document.addEventListener('mousemove', mv); document.addEventListener('mouseup', ed); } else { document.addEventListener('touchmove', mv, {passive:false}); document.addEventListener('touchend', ed); }
-            }
-            function mv(e) { 
-                const c=e.type.includes('mouse')?e:e.touches[0]; const dx=c.clientX-startX, dy=c.clientY-startY; 
-                if(Math.abs(dx)>5||Math.abs(dy)>5){ isDragging=true; if(m.classList.contains('active'))m.classList.remove('active'); }
-                if(isDragging){ e.preventDefault(); w.style.left=(initialLeft+dx)+'px'; w.style.top=(initialTop+dy)+'px'; }
-            }
+            function s(e) { if(e.target.closest('.float-menu'))return; isDragging=false; const c=e.type.includes('mouse')?e:e.touches[0]; startX=c.clientX; startY=c.clientY; const r=w.getBoundingClientRect(); initialLeft=r.left; initialTop=r.top; w.style.left=initialLeft+'px'; w.style.top=initialTop+'px'; w.style.bottom='auto'; w.style.right='auto'; if(e.type.includes('mouse')) { document.addEventListener('mousemove', mv); document.addEventListener('mouseup', ed); } else { document.addEventListener('touchmove', mv, {passive:false}); document.addEventListener('touchend', ed); } }
+            function mv(e) { const c=e.type.includes('mouse')?e:e.touches[0]; const dx=c.clientX-startX, dy=c.clientY-startY; if(Math.abs(dx)>5||Math.abs(dy)>5){ isDragging=true; if(m.classList.contains('active'))m.classList.remove('active'); } if(isDragging){ e.preventDefault(); w.style.left=(initialLeft+dx)+'px'; w.style.top=(initialTop+dy)+'px'; } }
             function ed() { document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',ed); document.removeEventListener('touchmove',mv); document.removeEventListener('touchend',ed); }
             b.addEventListener('click', (e)=>{ if(isDragging){e.preventDefault();e.stopPropagation();}else{m.classList.toggle('active');} });
             document.addEventListener('click', (e)=>{ if(m.classList.contains('active')&&!w.contains(e.target)){m.classList.remove('active');} });
