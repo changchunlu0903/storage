@@ -1245,6 +1245,52 @@
             100% { top: 120%; opacity: 0; transform: translateY(20px); }
         }
 
+        /* ==================== 🤫 刮刮乐样式 ==================== */
+        .scratch-container {
+            position: relative;
+            width: 260px; height: 150px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            user-select: none; /* 防止选中文字 */
+        }
+
+        /* 底层文字 */
+        .scratch-text-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px; box-sizing: border-box;
+            color: #d66a80; font-weight: bold; font-size: 15px;
+            line-height: 1.5;
+            z-index: 1;
+            background: #fff; /* 白底 */
+        }
+
+        /* 顶层画布 (涂层) */
+        #scratchCanvas {
+            position: absolute; top: 0; left: 0;
+            z-index: 2;
+            touch-action: none; /* 防止手机滚动 */
+            cursor: crosshair;
+        }
+
+        /* 初始遮罩 (做选择题用) */
+        .scratch-cover-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+            z-index: 10;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            transition: opacity 0.3s;
+        }
+
+        .scratch-actions {
+            display: flex; justify-content: center; gap: 15px; margin-top: 20px;
+        }
+
     </style>
 
     <style id="custom-reader-style"></style> 
@@ -1380,7 +1426,7 @@
                     </div>
 
                     <div class="lottery-panel" style="display:flex; gap:5px;">
-                        <button class="lottery-btn" onclick="startLottery()" style="flex:1">🔮 命运抉择</button>
+                        <button class="lottery-btn" onclick="startLottery()" style="flex:1">🔮 选个老婆</button>
                         <button class="lottery-btn" onclick="openGachaModal()" style="flex:1; background:linear-gradient(135deg, #e0f7fa 0%, #81ecec 100%); color:#00cec9;">🎲 灵感扭蛋</button>
                     </div>
 
@@ -1560,6 +1606,8 @@
                     <button class="edit-btn" onclick="openEditMode()">✏️ 编辑</button>
                     <button onclick="deleteCurrentItem()" style="border-color: #ffcccc; color: #ff6b6b;">🗑️ 删除</button>
                     <button onclick="openOathModal()" style="border-color: #ffd700; color: #f39c12; background: #fffdf0;">💍 誓约</button>
+<button onclick="openScratchModal()" style="border-color: #fab1a0; color: #e17055; background: #fff5f0;">🤫 秘密</button>
+
                 </div>
             
             </div> 
@@ -1826,6 +1874,36 @@ gap:5px;">
                 </div>
             </div>
 
+        </div>
+    </div>
+
+<div class="modal-overlay" id="scratchModal" style="z-index: 8500;">
+        <div class="modal" style="width: 300px; padding: 20px; background: #fff0f5; border: 4px solid white; border-radius: 20px; text-align: center;">
+            <button class="close-modal" onclick="closeScratchModal()">×</button>
+            
+            <h2 style="color: #d66a80; margin-bottom: 5px;">🤫 隐藏的秘密</h2>
+            <div style="font-size: 12px; color: #aaa; margin-bottom: 15px;">来自聊天记录的随机回忆...</div>
+
+            <div class="scratch-container" id="scratchContainer">
+                <div class="scratch-text-layer">
+                    <div id="scratchSecretText">...</div>
+                </div>
+                <canvas id="scratchCanvas"></canvas>
+                
+                <div id="scratchCover" class="scratch-cover-overlay">
+                    <div style="font-size: 40px;">🫣</div>
+                    <div style="font-weight: bold; color: #fff; margin-top: 10px;">要偷看TA的心里话吗？</div>
+                </div>
+            </div>
+
+            <div class="scratch-actions" id="scratchBtnArea">
+                <button class="small-btn" onclick="closeScratchModal()" style="background: #eee; color: #999;">🫣 算了不敢看</button>
+                <button class="primary-btn" onclick="startScratching()" style="background: #ff8fa3; border: none;">🖐️ 我要刮！</button>
+            </div>
+            
+            <div id="scratchHint" style="display:none; font-size:12px; color:#d66a80; margin-top:10px;">
+                ✨ 快用手指/鼠标涂抹上方区域 ✨
+            </div>
         </div>
     </div>
 
@@ -4009,6 +4087,192 @@ renderDetailSouvenirs(index);
                 
                 layer.appendChild(p);
             }
+        }
+
+                // ================= 🤫 刮刮乐 (强力提取版) =================
+        
+        let scratchCanvas, scratchCtx;
+        let isScratching = false;
+
+             // ================= 🤫 刮刮乐 (长文切片版) =================
+        function openScratchModal() {
+            if (viewingIndex === -1) return;
+            const item = items[viewingIndex];
+
+            // 1. 界面初始化
+            document.getElementById('scratchModal').classList.add('active');
+            document.getElementById('scratchCover').style.display = 'flex';
+            document.getElementById('scratchCover').style.opacity = '1';
+            document.getElementById('scratchBtnArea').style.display = 'flex';
+            document.getElementById('scratchHint').style.display = 'none';
+
+            // 2. 🔍 提取逻辑
+            let candidates = [];
+            
+            item.resources.forEach(res => {
+                if (!res.content) return;
+
+                let rawText = "";
+                // Base64 解码
+                if (res.content.startsWith('data:')) {
+                    try {
+                        const base64 = res.content.split(',')[1];
+                        rawText = decodeURIComponent(escape(window.atob(base64)));
+                    } catch (e) { console.log('解码失败', e); }
+                } else {
+                    rawText = res.content;
+                }
+
+                // 尝试解析 JSON
+                try {
+                    let jsonContent;
+                    try { jsonContent = JSON.parse(rawText); } catch(e) {}
+
+                    // 兼容 JSONL
+                    if (!jsonContent) {
+                        const lines = rawText.split('\n');
+                        const parsedLines = [];
+                        lines.forEach(l => { try { if(l.trim()) parsedLines.push(JSON.parse(l)); } catch(e){} });
+                        if (parsedLines.length > 0) jsonContent = parsedLines;
+                    }
+
+                    // 统一消息格式
+                    let msgs = [];
+                    if (Array.isArray(jsonContent)) msgs = jsonContent;
+                    else if (jsonContent && jsonContent.messages) msgs = jsonContent.messages;
+                    else if (jsonContent && jsonContent.history) msgs = jsonContent.history;
+
+                    // ⚡️ 核心修改：长文切片逻辑
+                    msgs.forEach(m => {
+                        // 1. 排除闲杂人等
+                        const isUser = m.is_user || m.role === 'user' || m.name === 'User' || m.name === 'Me';
+                        const isSystem = m.role === 'system' || m.name === 'System';
+                        const text = m.mes || m.content || m.text || "";
+
+                        // 只要有内容，且不是用户发的，就开始处理
+                        if (!isUser && !isSystem && text) {
+                            
+                            // 2. 清洗文本：去掉HTML标签，去掉动作描写（比如 *看着你* ）
+                            let cleanText = text.replace(/<[^>]*>/g, ''); // 去标签
+                            cleanText = cleanText.replace(/\*[^*]+\*/g, ''); // 去掉 *动作描写*
+                            cleanText = cleanText.replace(/（[^）]+）/g, ''); // 去掉 （中文括号动作）
+                            cleanText = cleanText.replace(/\([^)]+\)/g, ''); // 去掉 (英文括号动作)
+
+                            // 3. 🔪 暴力切分：不管段落多长，按标点切碎！
+                            // 按照 句号、感叹号、问号、换行符、分号 切分
+                            const sentences = cleanText.split(/[。！？.!?\n；;]+/);
+
+                            sentences.forEach(s => {
+                                let sent = s.trim();
+                                // 4. 📏 最终筛选：只要 5 到 40 个字的短句
+                                if (sent.length >= 5 && sent.length <= 40) {
+                                    candidates.push(sent);
+                                }
+                            });
+                        }
+                    });
+
+                } catch (e) {
+                    // 纯文本兜底处理：同样进行切片
+                    const lines = rawText.split(/[。！？.!?\n]+/);
+                    lines.forEach(line => {
+                        let l = line.trim();
+                        if (l.length >= 5 && l.length <= 40) candidates.push(l);
+                    });
+                }
+            });
+
+            // 3. 随机抽取一句
+            let finalMsg = "";
+            if (candidates.length > 0) {
+                finalMsg = candidates[Math.floor(Math.random() * candidates.length)];
+                console.log(`从 ${candidates.length} 条切片中选中：`, finalMsg);
+            } else {
+                // 没提取到合适的，用预设情话兜底
+                const defaults = [
+                    "我想一直看着你...", 
+                    "其实，我早就心动了。", 
+                    "你是笨蛋吗？这么久才发现。", 
+                    "今晚月色真美。",
+                    "别动，让我抱一会儿。",
+                    "只要你在，我就无所不能。"
+                ];
+                finalMsg = defaults[Math.floor(Math.random() * defaults.length)];
+            }
+
+            // 4. 填入并重置画布
+            document.getElementById('scratchSecretText').textContent = finalMsg;
+            initScratchCanvas();
+        }
+
+        function initScratchCanvas() {
+            const container = document.getElementById('scratchContainer');
+            scratchCanvas = document.getElementById('scratchCanvas');
+            scratchCtx = scratchCanvas.getContext('2d');
+
+            // 设置画布大小等于容器大小
+            scratchCanvas.width = container.clientWidth;
+            scratchCanvas.height = container.clientHeight;
+
+            // 填充银灰色涂层
+            scratchCtx.globalCompositeOperation = 'source-over';
+            scratchCtx.fillStyle = '#d1d1d1'; // 银灰色
+            scratchCtx.fillRect(0, 0, scratchCanvas.width, scratchCanvas.height);
+            
+            // 加上一些杂色纹理，更有质感
+            for(let i=0; i<500; i++) {
+                scratchCtx.fillStyle = Math.random() > 0.5 ? '#e0e0e0' : '#c0c0c0';
+                scratchCtx.fillRect(Math.random()*scratchCanvas.width, Math.random()*scratchCanvas.height, 2, 2);
+            }
+            
+            // 绘制文字“Scratch Me”
+            scratchCtx.font = "20px Arial";
+            scratchCtx.fillStyle = "#999";
+            scratchCtx.textAlign = "center";
+            scratchCtx.fillText("🔒 秘密", scratchCanvas.width/2, scratchCanvas.height/2 + 8);
+        }
+
+        function startScratching() {
+            // 隐藏遮罩和按钮，开始刮
+            document.getElementById('scratchCover').style.opacity = '0';
+            setTimeout(() => document.getElementById('scratchCover').style.display = 'none', 300);
+            document.getElementById('scratchBtnArea').style.display = 'none';
+            document.getElementById('scratchHint').style.display = 'block';
+
+            // 绑定刮除事件
+            scratchCanvas.onmousedown = scratchCanvas.ontouchstart = function(e) {
+                isScratching = true;
+                scrape(e);
+            };
+            window.onmousemove = window.ontouchmove = function(e) {
+                if (isScratching) scrape(e);
+            };
+            window.onmouseup = window.ontouchend = function() {
+                isScratching = false;
+            };
+        }
+
+        function scrape(e) {
+            e.preventDefault();
+            const rect = scratchCanvas.getBoundingClientRect();
+            let x, y;
+            if (e.touches) {
+                x = e.touches[0].clientX - rect.left;
+                y = e.touches[0].clientY - rect.top;
+            } else {
+                x = e.clientX - rect.left;
+                y = e.clientY - rect.top;
+            }
+
+            // 擦除模式
+            scratchCtx.globalCompositeOperation = 'destination-out';
+            scratchCtx.beginPath();
+            scratchCtx.arc(x, y, 15, 0, Math.PI * 2); // 笔触大小
+            scratchCtx.fill();
+        }
+
+        function closeScratchModal() {
+            document.getElementById('scratchModal').classList.remove('active');
         }
 
     </script>
