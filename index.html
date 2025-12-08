@@ -1831,7 +1831,7 @@
             👁️
         </div>
 
-        <h1>🌸 我的百宝箱  🌸</h1>
+       <h1 onclick="triggerCopyrightEgg()">🌸 我的百宝箱 🌸</h1>
 
         <div class="float-widget" id="floatWidget">
                                 <div class="float-menu" id="floatMenu">
@@ -1986,6 +1986,12 @@
         <div class="grid-container mode-default" id="gridContainer">
             <div class="empty-state">正在初始化数据库... 💾</div>
         </div>
+
+<div style="text-align: center; margin-top: 50px; padding-bottom: 20px; font-size: 10px; color: #e0e0e0; font-family: sans-serif; letter-spacing: 1px; user-select: none;">
+    © 2025 CHANGCHUNLU. All Rights Reserved. <br> 
+    Designed with ❤️ for My Royal Collection.
+</div>
+
     </div>
 
     <div class="modal-overlay" id="addModal">
@@ -2692,6 +2698,14 @@ gap:5px;">
     </div>
 
     <script>
+
+// ================= 🛡️ 传国玉玺 (控制台版权声明) =================
+console.log(
+    "%c🛑 警告！%c\n这是【长春路女皇】的皇家私产！\n禁止抄袭、盗用或未经允许的二改。\nOriginal Design by Empress Changchunlu.", 
+    "color: red; font-size: 30px; font-weight: bold; text-shadow: 2px 2px 0px black;",
+    "color: #d66a80; font-size: 16px; font-weight: bold;"
+);
+console.log("%c👑 侵权必究 👑", "background: #ffb7c5; color: white; padding: 5px 10px; border-radius: 20px; font-size: 12px;");
 
 // ================= ✅ 放在 <script> 的第一行 =================
 // 定义全局变量，防止下面的函数找不到它
@@ -7074,6 +7088,24 @@ function openTxtReader(resIndex) {
     
     // 记录当前文本以便下载
     currentNovelText = textContent;
+}
+
+// ================= 🥚 防伪暗门逻辑 =================
+let copyrightClicks = 0;
+let copyrightTimer = null;
+
+function triggerCopyrightEgg() {
+    copyrightClicks++;
+    
+    // 如果 2秒内没继续点，就重置次数
+    clearTimeout(copyrightTimer);
+    copyrightTimer = setTimeout(() => { copyrightClicks = 0; }, 2000);
+
+    // 连点 5 次触发
+    if (copyrightClicks === 5) {
+        alert("🛡️ 皇家防伪认证通过！\n\n✅ 正版所有者：【长春路女皇】\n📅 制作时间：2025年\n⚠️ 盗版必究！\n\n(Original Created by You)");
+        copyrightClicks = 0; // 重置
+    }
 }
 
     </script>
