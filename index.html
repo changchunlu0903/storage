@@ -1079,6 +1079,95 @@
             border-color: #ffd700;
         }
 
+               /* ==================== 🖼️ 相框样式库 (加粗加强版) ==================== */
+        
+        /* 1. 🎀 蕾丝甜心 (加粗粉线 + 大蝴蝶结) */
+        .card-img-wrapper.frame-lace {
+            border: 5px dashed #ff8fa3; /* 线条变粗，颜色变深 */
+            background: #fff0f5;
+            /* 双层投影，增加立体感 */
+            box-shadow: 
+                0 0 0 4px #fff inset, 
+                0 10px 20px rgba(255, 143, 163, 0.3);
+            overflow: visible; /* 允许蝴蝶结突出来一点 */
+            z-index: 1;
+        }
+        .card-img-wrapper.frame-lace::after {
+            content: '🎀'; position: absolute; top: -10px; left: -10px;
+            font-size: 32px; /* 图标放大 */
+            z-index: 10;
+            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.2));
+            transform: rotate(-15deg);
+        }
+
+        /* 2. ⚜️ 鎏金典藏 (厚重金框 + 大纹饰) */
+        .card-img-wrapper.frame-gold {
+            border: 6px solid #d4af37; /* 实心厚金边 */
+            /* 内侧加一道深色线，像真画框 */
+            outline: 2px solid #8a6d3b; 
+            outline-offset: -8px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.4); /* 深邃投影 */
+            overflow: visible;
+            z-index: 1;
+        }
+        .card-img-wrapper.frame-gold::before {
+            content: '⚜️'; position: absolute; bottom: -10px; right: -10px;
+            font-size: 28px; z-index: 10;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
+        }
+        /* 顶部加个皇冠装饰 */
+        .card-img-wrapper.frame-gold::after {
+            content: '👑'; position: absolute; top: -15px; left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px; z-index: 10;
+        }
+
+        /* 3. ✨ 星光流体 (强力霓虹光效) */
+        .card-img-wrapper.frame-stardust {
+            border: 4px solid transparent;
+            /* 这种写法可以做出渐变边框 */
+            background-image: linear-gradient(white, white), linear-gradient(45deg, #a18cd1, #fbc2eb, #8fd3f4);
+            background-origin: border-box;
+            background-clip: content-box, border-box;
+            /* 超强光晕 */
+            box-shadow: 0 0 20px 5px rgba(161, 140, 209, 0.6);
+            animation: borderRotate 2s linear infinite; /* 边框色调流动 */
+            overflow: visible;
+            z-index: 1;
+        }
+        .card-img-wrapper.frame-stardust::after {
+            content: '✨'; position: absolute; bottom: 5px; right: 5px;
+            font-size: 24px; 
+            filter: drop-shadow(0 0 5px #fff);
+            animation: spin 3s linear infinite;
+        }
+        @keyframes borderRotate {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
+        }
+
+        /* 4. 🌸 落樱画境 (花团锦簇) */
+        .card-img-wrapper.frame-sakura {
+            border: 5px solid #ff9a9e; /* 粗粉边 */
+            border-radius: 25px; /* 更圆润 */
+            box-shadow: 0 10px 20px rgba(255, 154, 158, 0.3);
+            overflow: visible;
+            z-index: 1;
+        }
+        /* 左上角一大簇 */
+        .card-img-wrapper.frame-sakura::before {
+            content: '🌸'; position: absolute; top: -12px; left: -12px;
+            font-size: 30px; z-index: 10;
+            text-shadow: 2px 2px 0 #fff;
+        }
+        /* 右下角一大簇 */
+        .card-img-wrapper.frame-sakura::after {
+            content: '🌸'; position: absolute; bottom: -12px; right: -12px;
+            font-size: 30px; z-index: 10;
+            text-shadow: 2px 2px 0 #fff;
+        }
+
+
     </style>
 
     <style id="custom-reader-style"></style> 
@@ -1214,7 +1303,7 @@
                     </div>
 
                     <div class="lottery-panel" style="display:flex; gap:5px;">
-                        <button class="lottery-btn" onclick="startLottery()" style="flex:1">🔮 命运抉择</button>
+                        <button class="lottery-btn" onclick="startLottery()" style="flex:1">🔮 选个老婆</button>
                         <button class="lottery-btn" onclick="openGachaModal()" style="flex:1; background:linear-gradient(135deg, #e0f7fa 0%, #81ecec 100%); color:#00cec9;">🎲 灵感扭蛋</button>
                     </div>
 
@@ -1317,6 +1406,18 @@
             </div>
                      <div class="form-group">
                <label>📦 包含的文件与链接</label><div class="resource-list" id="resourceList"><div style="text-align:center; color:#ccc; font-size:12px; padding:20px;">暂无内容，请点击下方按钮添加</div></div><div class="add-btn-row"><label class="upload-area small-btn" style="flex-grow:1; text-align:center;">📂 加文件 (图片/文档/其他)<input type="file" multiple onchange="handleUniversalSelect(this)"></label><button class="small-btn" onclick="openLinkInput()">🔗 加链接</button></div><div id="linkInputArea" style="display:none; margin-top:10px; background:#f9f9f9; padding:10px; border-radius:10px;"><input type="text" id="newLinkName" placeholder="链接名称 (如: 作者主页)" style="margin-bottom:5px;"><input type="text" id="newLinkUrl" placeholder="网址 (http://...)" style="margin-bottom:5px;"><div style="text-align:right;"><button class="small-btn" onclick="confirmAddLink()">确定</button><button class="small-btn" style="background:#eee; color:#666; border:none" onclick="document.getElementById('linkInputArea').style.display='none'">取消</button></div></div></div>
+
+                <div class="form-group" style="text-align:center; margin-top:15px; border-top:1px dashed #eee; padding-top:10px;">
+                    <label style="font-size:12px; color:#aaa; margin-bottom:8px;">🖼️ 装饰相框</label>
+                    <div style="display:flex; justify-content:center; gap:10px;">
+                        <button class="small-btn" onclick="setFrame('none')" style="border:1px solid #ddd; color:#999;" title="默认">🚫</button>
+                        <button class="small-btn" onclick="setFrame('frame-lace')" style="background:#fff0f5; border:1px dashed #ffb7c5;" title="蕾丝甜心">🎀</button>
+                        <button class="small-btn" onclick="setFrame('frame-gold')" style="background:#fffbe6; border:1px double #d4af37;" title="鎏金典藏">⚜️</button>
+                        <button class="small-btn" onclick="setFrame('frame-stardust')" style="background:linear-gradient(135deg,#e0c3fc,#8ec5fc); color:white; border:none;" title="星光流体">✨</button>
+                        <button class="small-btn" onclick="setFrame('frame-sakura')" style="background:#ffeff2; border:1px solid #ff9a9e;" title="落樱画境">🌸</button>
+                    </div>
+                </div>
+
             <div class="modal-buttons"><button onclick="closeAddModal()">取消</button><button class="primary-btn" onclick="saveItem()">💾 保存</button></div>
         </div>
     </div>
@@ -1367,10 +1468,21 @@
                 </div>
                 <div class="form-group"><label>📂 盒子内容</label><div id="detailListContainer" class="detail-list"></div></div>
                 
+                             <div class="form-group" style="text-align:center; margin-top:15px; border-top:1px dashed #eee; padding-top:10px;">
+                    <label style="font-size:12px; color:#aaa; margin-bottom:8px;">🖼️ 装饰相框</label>
+                    <div style="display:flex; justify-content:center; gap:10px;">
+                        <button class="small-btn" onclick="setFrame('none')" style="border:1px solid #ddd; color:#999;" title="默认">🚫</button>
+                        <button class="small-btn" onclick="setFrame('frame-lace')" style="background:#fff0f5; border:1px dashed #ffb7c5;" title="蕾丝甜心">🎀</button>
+                        <button class="small-btn" onclick="setFrame('frame-gold')" style="background:#fffbe6; border:1px double #d4af37;" title="鎏金典藏">⚜️</button>
+                        <button class="small-btn" onclick="setFrame('frame-stardust')" style="background:linear-gradient(135deg,#e0c3fc,#8ec5fc); color:white; border:none;" title="星光流体">✨</button>
+                        <button class="small-btn" onclick="setFrame('frame-sakura')" style="background:#ffeff2; border:1px solid #ff9a9e;" title="落樱画境">🌸</button>
+                    </div>
+                </div>
+
                 <div class="modal-buttons" style="justify-content: center; flex-wrap:wrap; margin-top: 20px;">
-                    <button class="edit-btn" onclick="openEditMode()">✏️ 编辑盒子内容</button>
-<button onclick="openOathModal()" style="border-color: #ffd700; color: #f39c12; background: #fffdf0;">💍 誓约</button>
-                    <button onclick="deleteCurrentItem()" style="border-color: #ffcccc; color: #ff6b6b;">🗑️ 删除盒子</button>
+                    <button class="edit-btn" onclick="openEditMode()">✏️ 编辑</button>
+                    <button onclick="deleteCurrentItem()" style="border-color: #ffcccc; color: #ff6b6b;">🗑️ 删除</button>
+                    <button onclick="openOathModal()" style="border-color: #ffd700; color: #f39c12; background: #fffdf0;">💍 誓约</button>
                 </div>
             
             </div> 
@@ -1875,7 +1987,8 @@ gap:5px;">
                 if (images.length > 0) coverSrc = images[Math.min(item.coverIndex||0, images.length-1)].content;
                 
                 const imgWrapper = document.createElement('div'); 
-                imgWrapper.className = 'card-img-wrapper';
+               // 👇 修改后：会自动读取 item.frameStyle 并加上对应的 CSS 类
+imgWrapper.className = `card-img-wrapper ${item.frameStyle || ''}`;
                 const img = document.createElement('img'); 
                 img.src = coverSrc; 
                 imgWrapper.appendChild(img);
@@ -3718,6 +3831,25 @@ renderDetailSouvenirs(index);
                 spawnPatParticle(window.innerWidth/2 - 50, window.innerHeight/2 - 20);
                 spawnPatParticle(window.innerWidth/2 + 50, window.innerHeight/2 + 20);
             }
+        }
+
+        // ================= 🖼️ 相框逻辑 =================
+        async function setFrame(style) {
+            if (viewingIndex === -1) return;
+            const item = items[viewingIndex];
+            
+            // 如果选的是 none，就清空；否则存入类名
+            if(style === 'none') {
+                delete item.frameStyle;
+            } else {
+                item.frameStyle = style;
+            }
+            
+            await saveItemToDB(item);
+            auth.toast('相框已更换 ✨');
+            
+            // 立即刷新主页网格，让你看到效果
+            renderGrid(items);
         }
 
     </script>
