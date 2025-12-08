@@ -1167,6 +1167,83 @@
             text-shadow: 2px 2px 0 #fff;
         }
 
+                /* ==================== 🖼️ 详情页专属：边框+特效 ==================== */
+        
+        /* 1. 必须给画廊容器设置 overflow: visible，否则蝴蝶结会被切掉 */
+        .gallery-container {
+            overflow: visible !important; 
+            transition: all 0.3s;
+            background: #fff; /* 默认白底 */
+        }
+
+                /* ==================== ✨ 高定版：详情页粒子特效 ==================== */
+        
+        /* 1. 特效容器：必须裁剪溢出，防止粒子飘到框外面 */
+        .detail-effect-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 20;
+            overflow: hidden; border-radius: 15px;
+        }
+
+        /* 2. 通用粒子基础样式 */
+        .effect-particle {
+            position: absolute; top: -20px;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        /* ========== 🌸 樱花 (Sakura) - 真正的花瓣形状 ========== */
+        .particle-sakura {
+            background: linear-gradient(120deg, #ffc3a0 0%, #ffafbd 100%);
+            border-radius: 100% 0 100% 0; /* 👈 关键：做成花瓣尖角形状 */
+            animation: fall-sway linear infinite;
+            box-shadow: 0 2px 5px rgba(255, 154, 158, 0.2);
+        }
+        @keyframes fall-sway {
+            0% { top: -10%; opacity: 0; transform: translateX(0) rotate(0deg); }
+            10% { opacity: 0.9; }
+            50% { opacity: 1; transform: translateX(20px) rotate(90deg); }
+            100% { top: 110%; opacity: 0; transform: translateX(-20px) rotate(180deg); }
+        }
+
+        /* ========== ✨ 星光 (Stardust) - 闪烁流星 ========== */
+        .particle-star {
+            background: white;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); /* 星星形状 */
+            animation: fall-twinkle linear infinite;
+            box-shadow: 0 0 10px rgba(255,255,255,0.8);
+        }
+        @keyframes fall-twinkle {
+            0% { top: -10%; opacity: 0; transform: scale(0.5); }
+            50% { opacity: 1; transform: scale(1.2); }
+            100% { top: 110%; opacity: 0; transform: scale(0.5); }
+        }
+
+        /* ========== 🎀 蕾丝 (Lace) - 柔和光斑/爱心 ========== */
+        .particle-heart {
+            color: #ff8fa3;
+            font-size: 14px;
+            animation: fall-float linear infinite;
+        }
+        .particle-heart::after { content: '💗'; } /* 用 Emoji 更清晰 */
+        @keyframes fall-float {
+            0% { top: -10%; transform: translateY(0) scale(0.8); opacity: 0; }
+            50% { opacity: 0.8; transform: translateY(10px) scale(1.1); }
+            100% { top: 110%; transform: translateY(0) scale(0.8); opacity: 0; }
+        }
+
+        /* ========== ⚜️ 鎏金 (Gold) - 金粉粒子 ========== */
+        .particle-gold {
+            background: #ffd700;
+            border-radius: 50%;
+            box-shadow: 0 0 4px #d4af37;
+            animation: fall-fast linear infinite;
+        }
+        @keyframes fall-fast {
+            0% { top: -10%; opacity: 0; transform: translateY(0); }
+            20% { opacity: 1; }
+            100% { top: 120%; opacity: 0; transform: translateY(20px); }
+        }
 
     </style>
 
@@ -2288,10 +2365,30 @@ document.getElementById('detailModal').classList.add('active');
 renderDetailSouvenirs(index);
         }
 
-        function updateGalleryUI(images) { const imgEl = document.getElementById('detailImg');
-            const curImg = images[galleryIndex]; imgEl.src = curImg.content; document.getElementById('galleryTypeLabel').textContent = curImg.subType; document.getElementById('imgIndex').textContent = galleryIndex + 1; document.getElementById('imgTotal').textContent = images.length;
-            const cb = document.getElementById('setCoverBtn'); if(galleryIndex === (items[viewingIndex].coverIndex || 0)) { cb.textContent = '当前封面'; cb.classList.add('is-cover'); } else { cb.textContent = '设为封面';
-            cb.classList.remove('is-cover'); } }
+                function updateGalleryUI(images) {
+            const imgEl = document.getElementById('detailImg');
+            const curImg = images[galleryIndex];
+            
+            // 基础图片设置
+            imgEl.src = curImg.content;
+            document.getElementById('galleryTypeLabel').textContent = curImg.subType;
+            document.getElementById('imgIndex').textContent = galleryIndex + 1;
+            document.getElementById('imgTotal').textContent = images.length;
+            
+            // 封面按钮状态
+            const cb = document.getElementById('setCoverBtn');
+            if (galleryIndex === (items[viewingIndex].coverIndex || 0)) {
+                cb.textContent = '当前封面'; 
+                cb.classList.add('is-cover'); 
+            } else { 
+                cb.textContent = '设为封面';
+                cb.classList.remove('is-cover');
+            }
+
+            // ✅ 新增：渲染详情页特效
+            renderDetailEffect(); 
+        }
+
         function changeGalleryImage(d) { const images = items[viewingIndex].resources.filter(r => r.type === 'image');
             if(images.length === 0) return; galleryIndex += d; if(galleryIndex >= images.length) galleryIndex = 0;
             if(galleryIndex < 0) galleryIndex = images.length - 1; updateGalleryUI(images); }
@@ -3834,22 +3931,84 @@ renderDetailSouvenirs(index);
         }
 
         // ================= 🖼️ 相框逻辑 =================
-        async function setFrame(style) {
+            async function setFrame(style) {
             if (viewingIndex === -1) return;
             const item = items[viewingIndex];
             
-            // 如果选的是 none，就清空；否则存入类名
-            if(style === 'none') {
-                delete item.frameStyle;
-            } else {
-                item.frameStyle = style;
-            }
-            
+            // 存数据
+            if(style === 'none') delete item.frameStyle;
+            else item.frameStyle = style;
             await saveItemToDB(item);
-            auth.toast('相框已更换 ✨');
             
-            // 立即刷新主页网格，让你看到效果
-            renderGrid(items);
+            // 立即刷新详情页
+            renderDetailEffect(); 
+            auth.toast('相框已更换 ✨');
+        }
+
+             // ================= 🪄 高级粒子特效生成器 =================
+        function renderDetailEffect() {
+            if (viewingIndex === -1) return;
+            const item = items[viewingIndex];
+            const container = document.querySelector('.gallery-container');
+            
+            // 1. 清理工作
+            // 移除旧的特效层
+            const oldLayer = container.querySelector('.detail-effect-overlay');
+            if(oldLayer) oldLayer.remove();
+            // 移除旧的边框类名
+            container.classList.forEach(cls => {
+                if(cls.startsWith('frame-')) container.classList.remove(cls);
+            });
+
+            // 如果没有相框，直接退出
+            if (!item.frameStyle || item.frameStyle === 'none') return;
+
+            // 2. 加边框样式
+            container.classList.add(item.frameStyle);
+
+            // 3. 创建特效层
+            const layer = document.createElement('div');
+            layer.className = 'detail-effect-overlay';
+            container.appendChild(layer);
+
+            // 4. 根据相框类型，决定生成什么粒子
+            let particleClass = '';
+            let count = 15; // 粒子数量
+
+            if (item.frameStyle === 'frame-sakura') particleClass = 'particle-sakura';
+            else if (item.frameStyle === 'frame-stardust') particleClass = 'particle-star';
+            else if (item.frameStyle === 'frame-lace') particleClass = 'particle-heart';
+            else if (item.frameStyle === 'frame-gold') { particleClass = 'particle-gold'; count = 25; } // 金粉多一点
+
+            if (!particleClass) return;
+
+            // 5. 循环生成粒子 (赋予随机属性)
+            for (let i = 0; i < count; i++) {
+                const p = document.createElement('div');
+                p.classList.add('effect-particle', particleClass);
+                
+                // 随机属性
+                const left = Math.random() * 100; // 水平位置 0-100%
+                const duration = Math.random() * 3 + 2; // 飘落时间 2-5秒
+                const delay = Math.random() * 5; // 延迟开始，错落有致
+                const size = Math.random() * 10 + 5; // 大小 5-15px
+                
+                p.style.left = left + '%';
+                p.style.animationDuration = duration + 's';
+                p.style.animationDelay = '-' + delay + 's'; // 负延迟，让动画一开始就布满屏幕，不用等
+                
+                // 针对不同类型的微调
+                if(particleClass === 'particle-sakura') {
+                    p.style.width = size + 'px';
+                    p.style.height = size + 'px';
+                } else if (particleClass === 'particle-gold') {
+                    p.style.width = '3px'; p.style.height = '3px'; // 金粉要小
+                } else if (particleClass === 'particle-star') {
+                    p.style.width = size + 'px'; p.style.height = size + 'px';
+                }
+                
+                layer.appendChild(p);
+            }
         }
 
     </script>
