@@ -1853,132 +1853,182 @@
     width: 100%; padding: 10px; border: 2px solid #d4af37; border-radius: 8px; min-height: 60px; font-family: inherit; margin: 10px 0;
 }
 
-/* ================= 👶 皇嗣：水晶史莱姆版 (True Glassy) ================= */
+/* ================= 👶 皇嗣系统：2D动态立绘版 ================= */
 
-/* 1. 悬浮呼吸动画 */
-@keyframes float-breathe {
-    0% { transform: translateY(0) scale(1); }
-    50% { transform: translateY(-8px) scale(1.05); } 
-    100% { transform: translateY(0) scale(1); }
+/* 1. 东宫弹窗容器 */
+#eastPalaceModal .modal {
+    width: 380px;
+    background: #fff;
+    border: 3px solid #ffb7c5;
+    border-radius: 12px;
+    padding: 0;
+    overflow: hidden;
+    display: flex; flex-direction: column;
 }
 
-.heir-ball-wrapper {
-    width: 100%; height: 260px;
-    display: flex; justify-content: center; align-items: center;
-    background: radial-gradient(circle at 50% 60%, rgba(255,255,255,0.6) 0%, transparent 70%); /* 底部圣光 */
-    overflow: visible;
-}
-
-/* 🔥 球体本体：不再是实心色，而是玻璃球 */
-.heir-ball {
+/* 2. 顶部大背景 (放您给的风景照) */
+.heir-bg-stage {
+    width: 100%;
+    height: 180px; /* 风景图高度 */
+    background-size: cover;
+    background-position: center;
     position: relative;
-    border-radius: 50%;
-    /* 核心：极光底色 */
-    background: radial-gradient(circle at 30% 30%, #fff 5%, #ffecd2 40%, #ffdfd2 100%);
-    /* 核心：玻璃光泽 (内阴影+外发光) */
-    box-shadow: 
-        inset 10px 10px 30px rgba(255, 255, 255, 1), /* 左上强高光 */
-        inset -10px -15px 30px rgba(255, 180, 180, 0.4), /* 右下环境光 */
-        0 15px 35px rgba(255, 150, 150, 0.3), /* 柔和投影 */
-        0 0 0 3px rgba(255, 255, 255, 0.5); /* 晶莹包边 */
-    
-    animation: float-breathe 4s infinite ease-in-out;
-    cursor: grab;
+    border-bottom: 2px solid #ffd1dc;
+}
+
+/* 3. 中间区域：左边信息，右边立绘 */
+.heir-middle-section {
+    display: flex;
+    position: relative;
+    padding: 10px;
+    background: linear-gradient(to bottom, #fff0f5 0%, #fff 100%);
+}
+
+.heir-info-left {
+    flex: 1; /* 左边占满剩余空间 */
+    padding-right: 100px; /* ⚠️ 关键：右边留出空位给立绘！ */
+}
+
+/* 🔥 4. 右侧立绘小框 (您要的小条) */
+.heir-avatar-box {
+    position: absolute;
+    right: 10px;
+    top: -60px; /* 让它稍微突出去一点到背景图上，更有层次感 */
+    width: 120px;
+    height: 160px;
     z-index: 10;
+    display: flex;
+    align-items: flex-end; /* 让人物站在底部 */
+    justify-content: center;
+    /* 调试用：如果您想看到框框，可以加 border，这里我先隐藏边框 */
+    /* border: 1px dashed red; */ 
 }
 
-/* 😳 五官：水汪汪大眼 */
-.heir-face {
-    position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%);
-    width: 80%; height: 50%; z-index: 50; pointer-events: none;
+/* 动图本体 */
+.heir-gif {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2)); /* 加点阴影更立体 */
+    transition: all 0.3s;
+    cursor: pointer;
+}
+.heir-gif:hover { transform: scale(1.05); }
+
+/* 5. 属性条样式优化 */
+.stat-row { display: flex; align-items: center; margin-bottom: 4px; font-size: 12px; color: #666; }
+.stat-name { width: 30px; font-weight: bold; }
+.stat-track { flex: 1; height: 6px; background: #eee; border-radius: 3px; overflow: hidden; margin: 0 5px; }
+.stat-val { height: 100%; border-radius: 3px; transition: width 0.5s; }
+
+/* 6. 底部操作区 */
+.heir-bio-scroll {
+    height: 80px; overflow-y: auto;
+    background: rgba(255,255,255,0.6);
+    border: 1px dashed #ffb7c5;
+    margin: 5px 10px; padding: 5px;
+    font-size: 11px; color: #555; border-radius: 5px;
+}
+.heir-btn-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; padding: 10px;
+}
+.heir-action-btn {
+    padding: 8px; border: 1px solid #ffb7c5; background: #fff; color: #e67e93; 
+    border-radius: 5px; cursor: pointer; font-size: 12px;
+}
+.heir-action-btn:hover { background: #fff0f5; }
+
+/* 跨年大按钮 */
+.next-year-btn {
+    grid-column: span 3;
+    background: #ff9a9e; color: white; border: none; font-weight: bold;
+    margin-top: 5px;
 }
 
-/* 眼睛：大！亮！ */
-.heir-eye {
-    position: absolute; top: 0; width: 18px; height: 22px; /* 竖向椭圆 */
-    background: #4e342e; border-radius: 50%;
-    box-shadow: 0 2px 5px rgba(78, 52, 46, 0.3);
-    animation: blink 4s infinite;
-}
-.heir-eye::after { /* 大高光 */
-    content: ''; position: absolute; top: 4px; left: 4px; width: 8px; height: 8px; background: #fff; border-radius: 50%;
-}
-.heir-eye::before { /* 小高光 */
-    content: ''; position: absolute; bottom: 4px; right: 5px; width: 4px; height: 4px; background: rgba(255,255,255,0.6); border-radius: 50%;
-}
-.heir-eye.left { left: 15px; } .heir-eye.right { right: 15px; }
+/* ================= 🌏 皇舆全览：上下布局版 ================= */
 
-.heir-mouth {
-    position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%);
-    width: 10px; height: 6px; 
-    border-radius: 10px 10px 20px 20px; /* 微笑嘴 */
-    background: #d87a80;
-}
-.heir-blush {
-    position: absolute; top: 25px; width: 28px; height: 16px;
-    background: #ff9a9e; border-radius: 50%; opacity: 0.5; filter: blur(5px); /* 晕染腮红 */
-}
-.heir-blush.left { left: -5px; } .heir-blush.right { right: -5px; }
-
-/* 💇‍♀️ 头发：不再是锅盖，是晕染的云朵 */
-.heir-hair-soft {
-    position: absolute; top: -5%; left: 50%; transform: translateX(-50%);
-    width: 110%; height: 60%;
-    z-index: 40; pointer-events: none;
-    opacity: 0.9;
+#travelModal .modal {
+    width: 90%; height: 90%; max-width: 600px; /* 竖屏适配 */
+    background: #fff; padding: 0;
+    border: 3px solid #d4af37;
+    border-radius: 12px;
+    display: flex; flex-direction: column;
+    overflow: hidden;
 }
 
-/* 👦 男孩发型：柔和短发 */
-.hair-boy-cloud {
-    position: absolute; top: 0; left: 10%; width: 80%; height: 80%;
-    background: #8d6e63; 
-    border-radius: 50% 50% 40% 40%;
-    filter: blur(1px); /* 边缘柔化，拒绝生硬 */
-    mask-image: radial-gradient(circle at 50% 100%, transparent 30%, black 80%); /* 下摆渐变透明 */
-    -webkit-mask-image: radial-gradient(circle at 50% 100%, transparent 30%, black 80%);
-}
-.hair-ahoge-soft { /* 呆毛 */
-    position: absolute; top: -15px; left: 50%; width: 15px; height: 30px;
-    background: #8d6e63; border-radius: 50% 100% 0 100%;
-    transform-origin: bottom center;
-    animation: hair-wave 2s infinite ease-in-out;
+/* 顶部标题栏 */
+.travel-header {
+    height: 45px; background: #222; color: #d4af37;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 15px; font-weight: bold; font-size: 14px;
+    border-bottom: 2px solid #d4af37;
+    flex-shrink: 0;
 }
 
-/* 👧 女孩发型：柔和刘海 */
-.hair-girl-cloud {
-    position: absolute; top: 0; left: 5%; width: 90%; height: 90%;
-    background: #8d6e63; border-radius: 50% 50% 30% 30%;
-    filter: blur(1px);
-    mask-image: radial-gradient(ellipse at 50% 110%, transparent 40%, black 80%);
-    -webkit-mask-image: radial-gradient(ellipse at 50% 110%, transparent 40%, black 80%);
+/* 主体容器：垂直排列 */
+.travel-body {
+    flex: 1; display: flex; flex-direction: column; /* 关键：改为纵向 */
+    overflow: hidden;
 }
 
-/* 👗 衣服：下半球的光晕，不再是实体 */
-.heir-body-glow {
-    position: absolute; bottom: 0; left: 0; width: 100%; height: 50%;
-    border-radius: 0 0 200px 200px;
-    z-index: 20;
-    opacity: 0.8;
-    mix-blend-mode: multiply; /* 正片叠底，融入球体 */
+/* 上半部分：地图展示区 */
+.travel-map-view {
+    height: 35%; /* 地图占 35% 高度 */
+    position: relative; background: #000;
+    border-bottom: 2px solid #d4af37;
+    overflow: hidden;
+    flex-shrink: 0;
 }
-/* 衣服装饰：中间的小宝石 */
-.heir-gem {
-    position: absolute; bottom: 15%; left: 50%; transform: translateX(-50%);
-    width: 16px; height: 16px; border-radius: 4px; rotate: 45deg;
-    z-index: 60;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+.travel-bg {
+    width: 100%; height: 100%; 
+    object-fit: cover; /* 填满区域 */
+    opacity: 0.9; transition: opacity 0.3s;
 }
 
-/* 性别配色特调 */
-.style-boy .heir-body-glow { background: linear-gradient(to top, #81ecec, transparent); }
-.style-boy .heir-gem { background: #00cec9; border: 2px solid #fff; }
+/* 下半部分：地点列表区 */
+.travel-sidebar {
+    flex: 1; /* 占满剩余高度 */
+    background: #fffbf0;
+    overflow-y: auto; /* 允许滚动 */
+    padding: 10px;
+    
+    /* 🔥 核心：网格布局，一行3个 */
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 8px;
+    align-content: start; /* 内容靠上 */
+}
 
-.style-girl .heir-body-glow { background: linear-gradient(to top, #ffb7c5, transparent); }
-.style-girl .heir-gem { background: #ff7675; border: 2px solid #fff; }
+/* 地点按钮 */
+.location-btn {
+    padding: 8px 5px; 
+    background: #fff; border: 1px solid #e0d0b0;
+    border-radius: 6px; cursor: pointer;
+    font-size: 12px; color: #5d4037;
+    text-align: center; /* 文字居中 */
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    min-height: 40px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+.location-btn:hover {
+    background: #ffe0b2; border-color: #d4af37; transform: translateY(-2px);
+}
+.location-btn.special { /* 切换点 */
+    background: #fff0f5; color: #c0392b; border-color: #ffb7c5; font-weight: bold;
+}
 
-@keyframes blink { 0%, 96%, 100% { transform: scaleY(1); } 98% { transform: scaleY(0.1); } }
-@keyframes hair-wave { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(15deg); } }
-
+/* 事件结果弹窗 (居中显示) */
+.travel-event-box {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 85%; max-width: 350px;
+    background: rgba(255, 255, 255, 0.98);
+    padding: 20px; border-radius: 12px;
+    border: 2px solid #d4af37;
+    box-shadow: 0 10px 50px rgba(0,0,0,0.6);
+    display: none; text-align: center;
+    z-index: 100;
+}
 
     </style>
 
@@ -3031,6 +3081,36 @@ gap:5px;">
     </div>
 </div>
 
+<div class="modal-overlay" id="travelModal" style="z-index: 12000;">
+    <div class="modal">
+        <div class="travel-header">
+            <div>
+                <span style="background:#d4af37; color:#000; padding:2px 6px; border-radius:4px; font-size:12px; margin-right:8px;" id="travelSeasonTag">春</span>
+                <span id="travelMapName">地图</span>
+            </div>
+            <div>
+                <button onclick="changeSeason()" style="font-size:12px; padding:4px 8px; background:#555; color:#fff; border:none; cursor:pointer; border-radius:4px;">🌸 换季</button>
+                <button onclick="document.getElementById('travelModal').classList.remove('active')" style="color:#fff; border:none; background:none; font-size:24px; cursor:pointer; margin-left:10px;">×</button>
+            </div>
+        </div>
+        
+        <div class="travel-body">
+            <div class="travel-sidebar" id="locationList">
+                </div>
+
+            <div class="travel-map-view">
+                <img id="travelBgImg" class="travel-bg" src="">
+                
+                <div class="travel-event-box" id="travelEventResult">
+                    <h3 style="color:#d4af37; margin-bottom:10px;">📜 游历奇遇</h3>
+                    <div id="travelEventText" style="font-size:14px; line-height:1.6; text-align:left; min-height:60px; margin-bottom:15px;"></div>
+                    <button onclick="closeTravelEvent()" style="padding:8px 30px; background:#d4af37; border:none; color:white; border-radius:20px; font-weight:bold; cursor:pointer;">朕知道了</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
     <div id="deleteBar" class="delete-bar">
         <button class="delete-btn-cancel" onclick="toggleBatchDeleteMode()">取消</button>
         <button class="delete-btn-confirm" onclick="confirmBatchDelete()">🗑️ 删除 (<span id="deleteCount">0</span>)</button>
@@ -3738,9 +3818,15 @@ function updateGalleryUI(images) {
         function renderSuggestTags() { const all=new Set(); items.forEach(i=>(i.tags||[]).forEach(t=>all.add(t))); const box=document.getElementById('suggestedTags'); box.innerHTML='';
             all.forEach(t=>{ const d=document.createElement('div'); d.className='tag-chip'; d.style.background='#f0f0f0'; d.style.color='#666'; d.style.cursor='pointer'; d.textContent=t; d.onclick=()=>{if(!currentTags.includes(t)){currentTags.push(t);renderTagsInput();}}; box.appendChild(d); });
         }
-                function handleSearch() {
-            const q = document.getElementById('searchInput').value.toLowerCase().trim();
-            const isDeep = document.getElementById('deepSearchCheck').checked; // 是否勾选了“搜内容”
+                        // ================= 🔍 修复后的搜索功能 =================
+        function handleSearch() {
+            // 1. 获取输入框 (修正 ID 为 mainSearchInput)
+            const inputEl = document.getElementById('mainSearchInput');
+            
+            // 安全检查：如果找不到输入框，默认为空字符串，防止报错卡死
+            const q = inputEl ? inputEl.value.toLowerCase().trim() : "";
+            
+            const isDeep = document.getElementById('deepSearchCheck').checked; 
 
             if (!q) {
                 renderGrid(items); // 没字就显示全部
@@ -3753,12 +3839,10 @@ function updateGalleryUI(images) {
                 
                 if (matchBasic) return true;
 
-                // 2. 深层搜索：如果勾选了，就去翻 resources 里的内容
+                // 2. 深层搜索
                 if (isDeep && item.resources) {
                     return item.resources.some(res => {
-                        // 只搜 JSON (聊天记录) 或 文本文件
                         if (res.type === 'json' || res.type === 'file') {
-                            // 直接在字符串里找，简单粗暴且高效
                             return res.content && res.content.toLowerCase().includes(q);
                         }
                         return false;
@@ -3770,13 +3854,10 @@ function updateGalleryUI(images) {
 
             renderGrid(f);
             
-            // 🟢 如果是深层搜索，给个提示反馈
-            if(isDeep && q) {
-                // 简单的防抖提示，避免每次打字都弹
-                // 这里我们直接利用 Grid 的空状态来提示
-                if(f.length === 0) {
-                    document.querySelector('.empty-state').innerHTML = `🤔 在回忆里找了一圈，没找到 "${q}"...`;
-                }
+            // 搜索结果提示
+            if(isDeep && q && f.length === 0) {
+                const emptyState = document.querySelector('.empty-state');
+                if(emptyState) emptyState.innerHTML = `🤔 在回忆里找了一圈，没找到 "${q}"...`;
             }
         }
 
@@ -5253,79 +5334,97 @@ function switchMenuPage(pageNum) {
             }
         }
 
-        // ================= 🖼️ 相框逻辑 =================
-            async function setFrame(style) {
-            if (viewingIndex === -1) return;
-            const item = items[viewingIndex];
-            
-            // 存数据
-            if(style === 'none') delete item.frameStyle;
-            else item.frameStyle = style;
-            await saveItemToDB(item);
-            
-            // 立即刷新详情页
-            renderDetailEffect(); 
-            auth.toast('相框已更换 ✨');
+                async function setFrame(style) {
+            // 1. 判断当前是在哪个弹窗里点 specific 按钮
+            const isAddModalActive = document.getElementById('addModal').classList.contains('active');
+
+            if (isAddModalActive) {
+                // === 情况 A：正在添加/编辑，还没保存 ===
+                currentDraftFrame = style;
+                auth.toast('已选择相框 (保存后生效) ✨');
+            } else {
+                // === 情况 B：在详情页里，直接修改数据库 ===
+                if (viewingIndex === -1) return;
+                const item = items[viewingIndex];
+                
+                // 修改数据
+                if(style === 'none') delete item.frameStyle;
+                else item.frameStyle = style;
+                
+                await saveItemToDB(item);
+                
+                // 立即刷新详情页的特效
+                renderDetailEffect(); 
+                auth.toast('相框已更换 ✨');
+                
+                // 顺便刷新主页列表，让列表上的框也变
+                renderGrid(items);
+            }
         }
 
-             // ================= 🪄 高级粒子特效生成器 =================
+
+                     // ================= 🪄 修复版：相框特效渲染 =================
         function renderDetailEffect() {
             if (viewingIndex === -1) return;
             const item = items[viewingIndex];
-            const container = document.querySelector('.gallery-container');
             
-            // 1. 清理工作
-            // 移除旧的特效层
+            // 1. 更加精准地获取容器 (防止获取错)
+            const container = document.querySelector('#detailModal .gallery-container');
+            if (!container) return;
+            
+            // 2. 清理旧的特效层和类名
             const oldLayer = container.querySelector('.detail-effect-overlay');
             if(oldLayer) oldLayer.remove();
-            // 移除旧的边框类名
+
+            // 清除旧的相框类名 (frame-开头) 和借用的 wrapper 类
             container.classList.forEach(cls => {
                 if(cls.startsWith('frame-')) container.classList.remove(cls);
             });
+            // 这一步很重要：先移除借用的类，防止叠加问题
+            container.classList.remove('card-img-wrapper'); 
 
             // 如果没有相框，直接退出
             if (!item.frameStyle || item.frameStyle === 'none') return;
 
-            // 2. 加边框样式
+            // 3. 🟢 核心修复：添加 card-img-wrapper 类
+            // 这样 .gallery-container 就能蹭到 .card-img-wrapper 的边框 CSS 了！
+            container.classList.add('card-img-wrapper');
             container.classList.add(item.frameStyle);
 
-            // 3. 创建特效层
+            // 4. 创建特效层 (粒子动画)
             const layer = document.createElement('div');
             layer.className = 'detail-effect-overlay';
             container.appendChild(layer);
 
-            // 4. 根据相框类型，决定生成什么粒子
+            // 5. 根据相框类型，决定生成什么粒子
             let particleClass = '';
-            let count = 15; // 粒子数量
+            let count = 15; 
 
             if (item.frameStyle === 'frame-sakura') particleClass = 'particle-sakura';
             else if (item.frameStyle === 'frame-stardust') particleClass = 'particle-star';
             else if (item.frameStyle === 'frame-lace') particleClass = 'particle-heart';
-            else if (item.frameStyle === 'frame-gold') { particleClass = 'particle-gold'; count = 25; } // 金粉多一点
+            else if (item.frameStyle === 'frame-gold') { particleClass = 'particle-gold'; count = 25; } 
 
             if (!particleClass) return;
 
-            // 5. 循环生成粒子 (赋予随机属性)
+            // 6. 循环生成粒子
             for (let i = 0; i < count; i++) {
                 const p = document.createElement('div');
                 p.classList.add('effect-particle', particleClass);
                 
-                // 随机属性
-                const left = Math.random() * 100; // 水平位置 0-100%
-                const duration = Math.random() * 3 + 2; // 飘落时间 2-5秒
-                const delay = Math.random() * 5; // 延迟开始，错落有致
-                const size = Math.random() * 10 + 5; // 大小 5-15px
+                const left = Math.random() * 100; 
+                const duration = Math.random() * 3 + 2; 
+                const delay = Math.random() * 5; 
+                const size = Math.random() * 10 + 5; 
                 
                 p.style.left = left + '%';
                 p.style.animationDuration = duration + 's';
-                p.style.animationDelay = '-' + delay + 's'; // 负延迟，让动画一开始就布满屏幕，不用等
+                p.style.animationDelay = '-' + delay + 's'; 
                 
-                // 针对不同类型的微调
                 if(particleClass === 'particle-sakura') {
-                    p.style.width = size + 'px';
-                    p.style.height = size + 'px';
+                    p.style.width = size + 'px'; p.style.height = size + 'px';
                 } else if (particleClass === 'particle-gold') {
-                    p.style.width = '3px'; p.style.height = '3px'; // 金粉要小
+                    p.style.width = '3px'; p.style.height = '3px';
                 } else if (particleClass === 'particle-star') {
                     p.style.width = size + 'px'; p.style.height = size + 'px';
                 }
@@ -7373,7 +7472,7 @@ function closeNoteModal() {
     editingNoteIndex = -1; 
 }
 
-// ================= 📖 转小说 (连载增强版) =================
+// ================= 📖 转小说 (智能续写版 - 自动检测进度) =================
 async function convertChatToNovel() {
     if (typeof viewingIndex === 'undefined' || viewingIndex === -1) return;
     
@@ -7382,58 +7481,109 @@ async function convertChatToNovel() {
 
     const item = items[viewingIndex];
     
-    // 1. 寻找是否已有名为“回忆录”的小说文件
+    // 🔥 设定每章的楼层数 (必须固定，否则换算会乱)
+    const BATCH_SIZE = 15; 
+
+    // --- 1. 寻找聊天记录 ---
+    let allMessages = [];
+    if (item.resources) {
+        for (let r of item.resources) {
+            if (r.content && (r.type === 'json' || r.name.endsWith('.json') || r.name.endsWith('.jsonl'))) {
+                let raw = r.content;
+                if (raw.startsWith('data:')) {
+                    try { raw = decodeURIComponent(escape(window.atob(raw.split(',')[1]))); } catch (e) {}
+                }
+                try {
+                    let json = JSON.parse(raw);
+                    if (Array.isArray(json)) allMessages = json;
+                    else if (json.messages) allMessages = json.messages;
+                    else if (json.history) allMessages = json.history;
+                } catch (e) {
+                    const lines = raw.split('\n');
+                    allMessages = lines.map(l => { try { return JSON.parse(l); } catch(e){ return null; } }).filter(x => x);
+                }
+                if (allMessages.length > 0) break;
+            }
+        }
+    }
+
+    if (allMessages.length === 0) { auth.toast('📭 没找到有效的聊天记录数据...'); return; }
+
+    // --- 2. 🕵️ 核心修改：检测现有小说进度 ---
     let existingNovelIndex = -1;
+    let currentNovelContent = "";
+    let existingChaptersCount = 0;
+
+    // 先找找有没有已经写过的小说
     if (item.resources) {
         existingNovelIndex = item.resources.findIndex(r => r.subType === '小说' || r.name.includes('回忆录'));
     }
 
-    // 计算当前是第几章
-    let chapterNum = 1;
-    let currentContent = "";
     if (existingNovelIndex !== -1) {
-        // 如果找到了旧书，统计一下里面有多少个“第x章”
-        const oldText = item.resources[existingNovelIndex].content;
-        const matches = oldText.match(/第[0-9一二三四五六七八九十]+章/g);
-        if (matches) chapterNum = matches.length + 1;
-        currentContent = oldText; // 记下旧内容
-    }
-
-    auth.toast(`📖 正在为【${item.name}】撰写第 ${chapterNum} 章...`);
-
-    // 2. 提取素材 (复用之前的逻辑)
-    let chatContext = "";
-    if (item.resources) {
-        for (let i = item.resources.length - 1; i >= 0; i--) {
-            const r = item.resources[i];
-            if (r.content && (r.type === 'json' || r.name.endsWith('.json'))) {
-                let raw = r.content.startsWith('data:') ? decodeURIComponent(escape(window.atob(r.content.split(',')[1]))) : r.content;
-                chatContext = raw.substring(0, 2000); 
-                break;
-            }
+        currentNovelContent = item.resources[existingNovelIndex].content;
+        
+        // 🔍 正则检测：数一数里面有几个 "第x章"
+        // 匹配 "第1章", "第十二章" 这种格式
+        const matches = currentNovelContent.match(/第[0-9一二三四五六七八九十百]+章/g);
+        if (matches) {
+            existingChaptersCount = matches.length;
         }
+        console.log(`检测到已存在 ${existingChaptersCount} 章`);
     }
-    if (!chatContext) { auth.toast('📭 没素材写不了书...'); return; }
 
-    // 3. Prompt (告诉 AI 这是第几章)
+    // 🔥 自动换算：直接根据章节数算出该从哪一楼开始
+    // 比如：有2章，每章15楼，那下一次就从 2 * 15 = 30楼开始
+    let startIndex = existingChaptersCount * BATCH_SIZE;
+    
+    // 更新一下数据里的游标，保持同步 (虽然我们现在主要靠文件检测)
+    item.novelCursor = startIndex;
+
+    // 计算结束楼层
+    const endIndex = Math.min(startIndex + BATCH_SIZE, allMessages.length);
+
+    // 检查是否全部写完
+    if (startIndex >= allMessages.length) {
+        auth.toast(`✅ 居然更完了！(检测到${existingChaptersCount}章，共${allMessages.length}楼)`);
+        return;
+    }
+
+    // --- 3. 提取素材 ---
+    const sliceMessages = allMessages.slice(startIndex, endIndex);
+    let chatContext = sliceMessages.map(m => {
+        const name = m.name || (m.is_user ? '我' : 'TA');
+        const text = m.mes || m.content || m.text || "";
+        if (!text || m.role === 'system') return ""; 
+        return `${name}: ${text}`;
+    }).filter(t => t).join('\n');
+
+    const nextChapterNum = existingChaptersCount + 1;
+
+    auth.toast(`📖 正在根据聊天记录 (${startIndex + 1} - ${endIndex}楼) 撰写第 ${nextChapterNum} 章...`);
+
+    // --- 4. 构建 AI Prompt ---
     const prompt = `
     【指令】：小说连载续写
-    当前章节：第 ${chapterNum} 章。
+    【当前进度】：第 ${nextChapterNum} 章
     
-    请根据以下对话记录，改写成一篇短篇小说章节。
-    【要求】：
-    1. 标题格式：第 ${chapterNum} 章：[自拟标题]。
-    2. 去掉对话标签，增加环境、心理描写。
-    3. 承接上文风格。
+    请将以下对话素材改写成小说。
+    
+    【严格要求】：
+    1. **只输出纯文本**，严禁使用 HTML 代码。
+    2. 不要列出大纲，直接开始写正文。
+    3. 去掉剧本式对话，转化为细腻的描写。
     4. 字数：500字左右。
     
-    【素材】：
+    【对话素材】：
     ${chatContext}
     `;
 
-    // 打开阅读器显示加载
+    // 显示加载状态
     document.getElementById('novelModal').classList.add('active');
-    document.getElementById('novelContent').innerHTML = '<div style="text-align:center; margin-top:100px; color:#8d6e63;">⏳ 正在以此生回忆为墨，续写篇章...</div>';
+    document.getElementById('novelContent').innerHTML = `<div style="text-align:center; margin-top:100px; color:#8d6e63;">
+        ⏳ 正在研读《${item.name}的回忆录》...<br>
+        检测到已有 ${existingChaptersCount} 章<br>
+        即将撰写第 ${nextChapterNum} 章 (${startIndex+1}-${endIndex}楼)...
+    </div>`;
 
     try {
         const response = await fetch(`${config.apiUrl}/chat/completions`, {
@@ -7447,50 +7597,44 @@ async function convertChatToNovel() {
         const data = await response.json();
         
         if (data.choices) {
-            const newChapter = data.choices[0].message.content;
-            
-            // 🔥 核心逻辑：合并新旧内容
+            let newChapter = data.choices[0].message.content;
+
+            // 清洗代码
+            newChapter = newChapter.replace(/<br\s*\/?>/gi, '\n');
+            newChapter = newChapter.replace(/<\/p>/gi, '\n\n');
+            newChapter = newChapter.replace(/<[^>]+>/g, '');
+            newChapter = newChapter.replace(/```html/g, '').replace(/```/g, '');
+            newChapter = newChapter.trim();
+
+            // --- 5. 保存 ---
             let finalNovel = "";
             let fileName = `${item.name}的回忆录.txt`;
 
             if (existingNovelIndex !== -1) {
-                // 续写：旧内容 + 换行 + 新章节
-                finalNovel = currentContent + "\n\n" + "=".repeat(20) + "\n\n" + newChapter;
-                
-                // 更新现有文件
+                // 续写
+                finalNovel = currentNovelContent + "\n\n" + "=".repeat(20) + "\n\n" + newChapter;
                 item.resources[existingNovelIndex].content = finalNovel;
-                item.resources[existingNovelIndex].date = new Date().toISOString(); // 更新时间
+                item.resources[existingNovelIndex].date = new Date().toISOString();
             } else {
-                // 新建：书名 + 新章节
+                // 新建
                 finalNovel = `《${item.name}的回忆录》\n\n` + newChapter;
-                
                 if (!item.resources) item.resources = [];
                 item.resources.push({
-                    type: 'file',
-                    subType: '小说',
-                    name: fileName,
-                    content: finalNovel,
-                    date: new Date().toISOString()
+                    type: 'file', subType: '小说', name: fileName,
+                    content: finalNovel, date: new Date().toISOString()
                 });
             }
 
-            // 保存并显示
             await saveItemToDB(item);
             
             document.getElementById('novelContent').innerText = finalNovel;
-            currentNovelText = finalNovel;
-            
-            // 刷新详情页列表 (为了显示那个新出现的“阅读”按钮)
-            const listContainer = document.getElementById('detailListContainer');
-            // 这里我们偷个懒，如果不刷新整个详情页，列表不会变。
-            // 建议提示用户：
-            auth.toast(`📚 第 ${chapterNum} 章已写入《${fileName}》！`);
-            
-            // 如果想立即看到列表更新，可以重新打开详情页（但这会闪一下）
-            // openDetailModal(viewingIndex); 
-            // 或者只是重新渲染列表部分（更平滑）：
-             // 手动触发一次列表重绘逻辑（把第一步的代码封装成函数调用最好，这里直接简写）：
-             // ... (由于篇幅限制，用户手动重开一下详情页即可看到列表变化)
+            setTimeout(() => {
+                const div = document.getElementById('novelContent');
+                div.scrollTop = div.scrollHeight;
+            }, 100);
+
+            window.currentNovelText = finalNovel;
+            auth.toast(`📚 第 ${nextChapterNum} 章已完成！(进度已自动校准)`);
         }
     } catch (e) {
         document.getElementById('novelContent').innerText = '❌ 续写失败：' + e.message;
@@ -7651,6 +7795,74 @@ async function openHoroscope() {
 
 // 全局变量
 let currentHeir = JSON.parse(localStorage.getItem('royal_heir_data')) || null;
+
+// ================= 👶 皇嗣素材库 =================
+const HEIR_ASSETS = {
+    boy: {
+        bg: "https://files.catbox.moe/xbtct5.jpg", // 竹林阅读
+        idle: [
+            "https://files.catbox.moe/fv8f8p.gif", // 待机1
+            "https://files.catbox.moe/vdvz1m.gif"  // 待机2
+        ],
+        // 因为男孩您没给害羞/打哈欠，暂时用待机代替，或者您可以后面补上
+        shy: "https://files.catbox.moe/fv8f8p.gif", 
+        yawn: "https://files.catbox.moe/vdvz1m.gif"
+    },
+    girl: {
+        bg: "https://files.catbox.moe/3ofd6b.png", // 春秋天公园
+        idle: [
+            "https://files.catbox.moe/8q61ys.gif", // 待机1
+            "https://files.catbox.moe/4hxxkv.gif"  // 待机2
+        ],
+        shy: "https://files.catbox.moe/cokcdl.gif",   // 害羞
+        yawn: "https://files.catbox.moe/mezusb.gif"   // 打哈欠
+    }
+};
+
+// ================= 🌏 皇舆全览：地点数据配置 =================
+
+let currentMapId = 'outside'; // 默认在宫外
+let currentSeason = '春'; 
+
+const WORLD_MAPS = {
+    // === 🗺️ 宫外地图 ===
+    'outside': {
+        name: '京城',
+        bg: 'https://files.catbox.moe/acbius.jpeg',
+        // 宫外地点列表
+        locations: [
+            // 🛑 特殊点：点这个进宫
+            { name: '皇宫', type: 'transition', target: 'inside', desc: '回宫' },
+            
+            // 普通游历点
+            { name: '永定门' }, { name: '颐和园' }, { name: '圆明园' }, { name: '香山' },
+            { name: '玉渊潭' }, { name: '八大处' }, { name: '朝阳门' }, { name: '先农坛' },
+            { name: '地坛' }, { name: '东直门' }, { name: '国子监' }, { name: '西直门' },
+            { name: '北海公园' }, { name: '什刹海' }, { name: '钟楼' }, { name: '鼓楼' },
+            { name: '南锣鼓巷' }, { name: '颐和宫' }, { name: '西四' }, { name: '后海' },
+            { name: '白塔寺' }, { name: '琉璃厂' }, { name: '阜成门' }, { name: '广济寺' },
+            { name: '天桥' }, { name: '前门大街' }, { name: '正阳门' }
+        ]
+    },
+
+    // === 🏯 宫内地图 ===
+    'inside': {
+        name: '紫禁城',
+        bg: 'https://files.catbox.moe/kp648j.jpeg',
+        locations: [
+            // 🛑 特殊点：点这个出宫
+            { name: '午门', type: 'transition', target: 'outside', desc: '出宫' },
+
+            // 普通宫殿
+            { name: '养心殿' }, { name: '乾清宫' }, { name: '御花园' }, { name: '太和殿' },
+            { name: '寿康宫' }, { name: '慈宁宫' }, { name: '慈宁宫花园' }, { name: '东六宫' },
+            { name: '内务府' }, { name: '神武门' }, { name: '雨花阁' }, { name: '体仁阁' },
+            { name: '弘义阁' }, { name: '乾清门' }, { name: '交泰殿' }, { name: '钦安殿' },
+            { name: '箭亭' }, { name: '中和殿' }, { name: '保和殿' }, { name: '斋宫' },
+            { name: '文华殿' }, { name: '武英殿' }, { name: '奉先殿' }, { name: '太和门' }
+        ]
+    }
+};
 
 // 年龄阶段
 const HEIR_STAGES = [
@@ -8075,6 +8287,353 @@ function touchHeir(event) {
         mouth.style.borderRadius = '0 0 10px 10px'; mouth.style.height = '5px'; mouth.style.width = '10px';
         blushL.style.opacity = '0'; blushR.style.opacity = '0';
     }, 2000);
+}
+
+// ================= 👶 皇嗣系统：2D 养成版 =================
+
+// 打开东宫 (渲染界面)
+function openEastPalace() {
+    if (!currentHeir) return;
+    document.getElementById('eastPalaceModal').classList.add('active');
+
+    // 1. 获取素材
+    const isBoy = currentHeir.gender === '男';
+    const assets = isBoy ? HEIR_ASSETS.boy : HEIR_ASSETS.girl;
+
+    // 2. 渲染 HTML 结构
+    const modalContent = document.querySelector('#eastPalaceModal .modal');
+    modalContent.innerHTML = `
+        <button class="close-modal" onclick="closeEastPalace()" style="position:absolute;right:5px;top:5px;z-index:20;color:#fff;text-shadow:0 0 2px #000;">×</button>
+        
+        <div class="heir-bg-stage" style="background-image: url('${assets.bg}')"></div>
+
+        <div class="heir-middle-section">
+            <div class="heir-info-left">
+                <div style="color:#d4af37; font-size:16px; font-weight:bold; margin-bottom:5px;">
+                    ${currentHeir.title} · ${currentHeir.name} 
+                    <span style="font-size:12px; color:#888;">(${currentHeir.age}岁)</span>
+                </div>
+                
+                <div class="stat-row"><div class="stat-name">智慧</div><div class="stat-track"><div class="stat-val" style="width:${currentHeir.stats.wisdom}%; background:#81ecec"></div></div>${currentHeir.stats.wisdom}</div>
+                <div class="stat-row"><div class="stat-name">体魄</div><div class="stat-track"><div class="stat-val" style="width:${currentHeir.stats.fitness}%; background:#ff7675"></div></div>${currentHeir.stats.fitness}</div>
+                <div class="stat-row"><div class="stat-name">魅力</div><div class="stat-track"><div class="stat-val" style="width:${currentHeir.stats.charm}%; background:#a29bfe"></div></div>${currentHeir.stats.charm}</div>
+                <div class="stat-row"><div class="stat-name">疲劳</div><div class="stat-track"><div class="stat-val" style="width:${currentHeir.stress || 0}%; background:#636e72"></div></div>${currentHeir.stress || 0}</div>
+            
+                <div style="font-size:10px; color:#999; margin-top:5px;">父君: ${currentHeir.fatherName}</div>
+            </div>
+
+            <div class="heir-avatar-box">
+                <img id="heirDynamicGif" class="heir-gif" src="" onclick="touchHeir2D()">
+            </div>
+        </div>
+
+        <div class="heir-bio-scroll" id="heirBioText">
+            ${currentHeir.bioLog.slice().reverse().join('<br>')}
+        </div>
+
+        <div class="heir-btn-grid" id="normalActions">
+            <button class="heir-action-btn" onclick="interactHeir('study')">📖 上课</button>
+            <button class="heir-action-btn" onclick="interactHeir('play')">🪁 出去玩</button>
+            <button class="heir-action-btn" onclick="interactHeir('doctor')">💊 去医院</button>
+<button class="heir-action-btn" onclick="openTravelMap()" style="grid-column: span 3; background:#fff7e6; color:#d46b08; border-color:#ffbb96;">🌏 带他/她去游历 (大地图)</button>
+
+            <button class="heir-action-btn next-year-btn" onclick="advanceYear()">🎍 辞旧迎新 (进入下一年)</button>
+        </div>
+        
+        <div class="heir-btn-grid" id="graduateActions" style="display:none">
+            <button class="heir-action-btn next-year-btn" style="background:#d4af37" onclick="graduateHeir()">🎓 赐府成家 (存档)</button>
+        </div>
+    `;
+
+    // 3. 初始显示动图
+    updateAvatarDisplay();
+
+    // 4. 检查是否成年
+    if (currentHeir.age >= 18) {
+        document.getElementById('normalActions').style.display = 'none';
+        document.getElementById('graduateActions').style.display = 'grid';
+    }
+}
+
+// ================= 🎮 互动逻辑：强制治愈版 =================
+async function interactHeir(action) {
+    if (!currentHeir) return;
+    
+    // 初始化疲劳值
+    if (typeof currentHeir.stress === 'undefined') currentHeir.stress = 0;
+
+    // 1. 检查状态
+    // 如果生病了(体魄 < 30) 且不是去看病，禁止操作
+    if (currentHeir.stats.fitness < 30 && action !== 'doctor') {
+        auth.toast('❌ 皇嗣病倒了，请先带去【医院】医治！');
+        updateAvatarDisplay('yawn'); 
+        return;
+    }
+
+    auth.toast('⏳ 正在进行中...');
+    
+    // 2. 构建 Prompt
+    var config = window.aiConfig || JSON.parse(localStorage.getItem('my_ai_config'));
+    const actionMap = { 
+        'study': '去上课(增加智慧，增加疲劳)', 
+        'play': '出去玩(增加魅力/体魄，减少疲劳)', 
+        'doctor': '去医院看病(恢复体魄，减少疲劳)' 
+    };
+    
+    const prompt = `
+    我是女皇。皇嗣【${currentHeir.name}】(${currentHeir.age}岁)。
+    当前属性：智${currentHeir.stats.wisdom}/体${currentHeir.stats.fitness}/魅${currentHeir.stats.charm}/疲劳${currentHeir.stress}。
+    我带他/她【${actionMap[action]}】。
+    
+    请生成结果 JSON：
+    {
+        "story": "互动描述(30字内)",
+        "statsChange": { "wisdom": 0, "fitness": 0, "charm": 0 },
+        "stressChange": 0,
+        "mood": "happy/shy/tired"
+    }
+    `;
+
+    try {
+        const res = await fetchAI(prompt, config);
+        const data = JSON.parse(res.replace(/```json/g,'').replace(/```/g,'').trim());
+
+        // 更新属性
+        currentHeir.stats.wisdom += (data.statsChange.wisdom || 0);
+        currentHeir.stats.charm += (data.statsChange.charm || 0);
+        
+        // 👇👇👇【关键修改：如果是看病，强制回血！】👇👇👇
+        if (action === 'doctor') {
+            // 只要看病，直接把体魄拉到 70 (健康)，疲劳清零
+            currentHeir.stats.fitness = 70;
+            currentHeir.stress = 0;
+            auth.toast('💊 妙手回春！皇嗣已痊愈！');
+        } else {
+            // 普通情况：按 AI 说的加减
+            currentHeir.stats.fitness += (data.statsChange.fitness || 0);
+            currentHeir.stress += (data.stressChange || 0);
+        }
+        // 👆👆👆【修改结束】👆👆👆
+
+        // 限制范围 0-100
+        currentHeir.stats.wisdom = Math.min(100, Math.max(0, currentHeir.stats.wisdom));
+        currentHeir.stats.fitness = Math.min(100, Math.max(0, currentHeir.stats.fitness));
+        currentHeir.stats.charm = Math.min(100, Math.max(0, currentHeir.stats.charm));
+        currentHeir.stress = Math.min(100, Math.max(0, currentHeir.stress));
+
+        // 记录
+        currentHeir.bioLog.push(`【${currentHeir.age}岁】：${data.story}`);
+        saveHeirData();
+        
+        // 刷新界面
+        openEastPalace();
+        
+        // 触发表情
+        if (data.mood === 'shy') updateAvatarDisplay('shy');
+        else if (data.mood === 'tired' || currentHeir.stress > 80) updateAvatarDisplay('yawn');
+        else updateAvatarDisplay('idle');
+
+    } catch (e) {
+        console.error(e);
+        auth.toast('❌ 网络卡顿...');
+    }
+}
+
+// 🎍 辞旧迎新：手动进入下一年
+async function advanceYear() {
+    if(!confirm(`这一年过得怎么样？确定要让【${currentHeir.name}】长大一岁吗？`)) return;
+
+    currentHeir.age += 1;
+    currentHeir.stress = Math.max(0, currentHeir.stress - 30); // 过年开心，疲劳下降
+    currentHeir.bioLog.push(`——— ✨ 皇嗣长到了 ${currentHeir.age} 岁 ✨ ———`);
+    
+    saveHeirData();
+    openEastPalace();
+    auth.toast('🎆 新年快乐！皇嗣又长大了一岁！');
+    
+    // 过年特效：放个鞭炮或者撒花
+    if(navigator.vibrate) navigator.vibrate([100,100,200]);
+}
+
+// 🖼️ 核心：动图切换逻辑
+function updateAvatarDisplay(forceState) {
+    const img = document.getElementById('heirDynamicGif');
+    if (!img || !currentHeir) return;
+
+    const isBoy = currentHeir.gender === '男';
+    const assets = isBoy ? HEIR_ASSETS.boy : HEIR_ASSETS.girl;
+
+    let targetUrl = "";
+
+    // 1. 强制状态 (害羞/打哈欠)
+    if (forceState === 'shy') targetUrl = assets.shy;
+    else if (forceState === 'yawn') targetUrl = assets.yawn;
+    
+    // 2. 自动状态 (疲劳高 -> 打哈欠)
+    else if ((currentHeir.stress || 0) > 80) {
+        targetUrl = assets.yawn;
+    }
+    
+    // 3. 默认随机待机
+    else {
+        // 随机选 idle1 或 idle2
+        const randomIndex = Math.floor(Math.random() * assets.idle.length);
+        targetUrl = assets.idle[randomIndex];
+    }
+
+    img.src = targetUrl;
+}
+
+// 👉 2D 触摸互动
+function touchHeir2D() {
+    // 随机触发害羞
+    updateAvatarDisplay('shy');
+    auth.toast(`👉 戳了戳 ${currentHeir.name} 的脸蛋`);
+    
+    // 3秒后恢复正常
+    setTimeout(() => {
+        updateAvatarDisplay('idle');
+    }, 3000);
+}
+
+// ================= 🌏 皇嗣游历：列表版逻辑 =================
+
+// 打开地图
+function openTravelMap() {
+    if (!currentHeir) return;
+    document.getElementById('travelModal').classList.add('active');
+    renderTravelMap();
+}
+
+// 渲染界面 (列表+地图)
+function renderTravelMap() {
+    const data = WORLD_MAPS[currentMapId];
+    
+    // 1. 更新顶部信息
+    document.getElementById('travelMapName').innerText = data.name;
+    document.getElementById('travelSeasonTag').innerText = currentSeason;
+    
+    // 2. 更新右侧图片
+    const img = document.getElementById('travelBgImg');
+    img.src = data.bg;
+
+    // 3. 生成左侧列表
+    const list = document.getElementById('locationList');
+    list.innerHTML = ''; // 清空旧列表
+
+    data.locations.forEach(loc => {
+        const btn = document.createElement('div');
+        
+        // 样式判断：如果是切换地图的点(皇宫/午门)，加特殊样式
+        if (loc.type === 'transition') {
+            btn.className = 'location-btn special';
+            btn.innerHTML = `<span>🚪 ${loc.name}</span><span style="font-size:10px; opacity:0.6;">➜</span>`;
+        } else {
+            btn.className = 'location-btn';
+            btn.innerHTML = `<span>📍 ${loc.name}</span>`;
+        }
+        
+        // 点击事件
+        btn.onclick = () => handleLocationClick(loc);
+        
+        list.appendChild(btn);
+    });
+}
+
+// 处理点击
+function handleLocationClick(loc) {
+    // A. 切换地图 (进宫/出宫)
+    if (loc.type === 'transition') {
+        // 淡出效果
+        const img = document.getElementById('travelBgImg');
+        img.style.opacity = 0;
+        
+        setTimeout(() => {
+            currentMapId = loc.target; // 切换ID
+            renderTravelMap();         // 重新渲染
+            img.style.opacity = 1;     // 淡入
+            auth.toast(`🔄 已前往：${WORLD_MAPS[currentMapId].name}`);
+        }, 200);
+    } 
+    // B. 普通游历 (触发AI)
+    else {
+        triggerTravelEvent(loc);
+    }
+}
+
+// 触发 AI 事件
+
+// ================= 🌏 触发 AI 事件 (带记录功能版) =================
+async function triggerTravelEvent(loc) {
+    const box = document.getElementById('travelEventResult');
+    const text = document.getElementById('travelEventText');
+    box.style.display = 'block';
+    text.innerHTML = '<div class="ai-loading">🐴 车马劳顿...正在生成奇遇...</div>';
+
+    var config = window.aiConfig || JSON.parse(localStorage.getItem('my_ai_config'));
+    
+    // Prompt
+    const prompt = `
+    我是女皇。
+    我带着皇嗣【${currentHeir.name}】(${currentHeir.age}岁) 出游。
+    当前季节：${currentSeason}。
+    地点：【${WORLD_MAPS[currentMapId].name}】的【${loc.name}】。
+    
+    请生成一个简短的亲子游历剧情(60字左右)。
+    要求：
+    1. 描写在${loc.name}看到的景色。
+    2. 皇嗣的反应（开心/好奇/学到了东西）。
+    `;
+
+    try {
+        const res = await fetchAI(prompt, config);
+        // 清理一下返回的文本
+        const cleanText = res.replace(/\n/g, '').trim();
+        
+        // 显示给用户看
+        text.innerHTML = cleanText;
+        
+        // 🔥🔥🔥 核心修改：写入起居注 🔥🔥🔥
+        if (currentHeir) {
+            // 1. 构造记录文本
+            const logEntry = `【${currentHeir.age}岁·游历】：在${loc.name}，${cleanText}`;
+            
+            // 2. 存入数组
+            currentHeir.bioLog.push(logEntry);
+            
+            // 3. 游历奖励：减少疲劳，心情变好
+            if (typeof currentHeir.stress !== 'undefined') {
+                currentHeir.stress = Math.max(0, currentHeir.stress - 8);
+            }
+
+            // 4. 保存数据
+            saveHeirData();
+        }
+
+    } catch (e) {
+        text.innerText = "❌ 游历途中遇到了大雾（网络错误）...";
+    }
+}
+
+// 关闭弹窗时，刷新东宫界面，让用户立刻看到记录
+function closeTravelEvent() {
+    document.getElementById('travelEventResult').style.display = 'none';
+    openEastPalace(); // 刷新界面，显示新增加的记录
+}
+
+// 关闭事件窗
+function closeTravelEvent() {
+    document.getElementById('travelEventResult').style.display = 'none';
+    openEastPalace(); // 刷新东宫状态
+}
+
+// 换季
+function changeSeason() {
+    const seasons = ['春', '夏', '秋', '冬'];
+    let idx = seasons.indexOf(currentSeason);
+    currentSeason = seasons[(idx + 1) % 4];
+    renderTravelMap(); 
+    auth.toast(`🌸 时令已变，入${currentSeason}了`);
 }
 
     </script>
